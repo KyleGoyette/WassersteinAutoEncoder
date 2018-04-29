@@ -52,8 +52,4 @@ class Decoder(nn.Module):
         h1 = h1.view(-1,1024,7,7)
         return F.sigmoid(self.layer4(self.layer3(self.layer2(h1))))
 
-
-
-
-x=Encoder()
                 
