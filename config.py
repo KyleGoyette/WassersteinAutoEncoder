@@ -8,6 +8,6 @@ celeba_latentd = 64
 
 batch_size = 10
 
-SAVEFREQ = 100
+SAVEFREQ = 10
 REPORTFREQ = 5
 NUMEPOCHS = 1
