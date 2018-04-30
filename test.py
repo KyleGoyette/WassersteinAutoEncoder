@@ -1,6 +1,9 @@
-from utils import load_data_mnist
+from utils import load_data_mnist,train_VAE
+import torch
+import VAE
+trainloader, testloader = load_data_mnist()
+model = VAE.VAE()
 
-trainloader, testloader = load_data_mnist(100)
-
-for batch_ind, (data,_) in enumerate(trainloader):
-    print(data.shape)
+#model.cuda()
+optimizer = torch.optim.Adam(model.myparameters)
+train_VAE(model,trainloader,optimizer)

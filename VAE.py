@@ -5,11 +5,11 @@ import numpy as np
 import config
 
 class VAE(nn.Module):
-    def __init__(self,encoder,decoder):
+    def __init__(self):
         super(VAE,self).__init__()
-        self.encoder = encoder
-        self.decoder = decoder
-        self.myparameters = self.encoder.parameters() + self.decoder.parameters()
+        self.encoder = Encoder_MNIST()
+        self.decoder = Decoder_MNIST()
+        self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters()))
 
     def encode(self,x):
         return self.encoder.forward(x)
@@ -20,7 +20,10 @@ class VAE(nn.Module):
     def reparameterize(self,mu,logvar,n=config.batch_size):
         eps = np.random.normal(0,1,(n,config.mnist_latentd))
         eps = torch.autograd.Variable(torch.from_numpy(eps))
-        return eps.mul(logvar.mul(0.5).exp(_)).add_(mu)
+        if config.CUDA:
+            eps = eps.cuda()
+
+        return eps.float().mul(logvar.mul(0.5).exp()).add_(mu)
 
     def loss(self,recon_x,x,mu,logvar):
         bce = nn.BCELoss()
@@ -37,7 +40,7 @@ class VAE(nn.Module):
 
 class Encoder_MNIST(nn.Module):
     def __init__(self):
-        super(Encoder,self).__init__()
+        super(Encoder_MNIST,self).__init__()
         self.layer1 = nn.Sequential(nn.Conv2d(in_channels=1, out_channels=128, kernel_size=4, stride=2,padding=15),
                                     nn.BatchNorm2d(128),
                                     nn.ReLU())
@@ -64,7 +67,7 @@ class Encoder_MNIST(nn.Module):
 
 class Decoder_MNIST(nn.Module):
     def __init__(self):
-        super(Decoder,self).__init__()
+        super(Decoder_MNIST,self).__init__()
         self.layer1 = nn.Linear(in_features=8, out_features=7*7*1024)
         self.layer2 = nn.Sequential(
             nn.ConvTranspose2d(in_channels=1024,out_channels=512,stride=2,padding=1,kernel_size=4),
@@ -77,7 +80,7 @@ class Decoder_MNIST(nn.Module):
             nn.ReLU()
         )
 
-        self.layer4 = nn.ConvTranspose2d(in_channels=256,out_channels=1, stride=1, padding=1,kernel_size=4)
+        self.layer4 = nn.ConvTranspose2d(in_channels=256,out_channels=1, stride=1, padding=1,kernel_size=3)
         
 
     def forward(self,x):
