@@ -1,8 +1,41 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
+import config
 
-class Encoder(nn.Module):
+class VAE(nn.Module):
+    def __init__(self,encoder,decoder):
+        super(VAE,self).__init__()
+        self.encoder = encoder
+        self.decoder = decoder
+        self.myparameters = self.encoder.parameters() + self.decoder.parameters()
+
+    def encode(self,x):
+        return self.encoder.forward(x)
+
+    def decode(self,z):
+        return self.decoder.forward(z)
+
+    def reparameterize(self,mu,logvar,n=config.batch_size):
+        eps = np.random.normal(0,1,(n,config.mnist_latentd))
+        eps = torch.autograd.Variable(torch.from_numpy(eps))
+        return eps.mul(logvar.mul(0.5).exp(_)).add_(mu)
+
+    def loss(self,recon_x,x,mu,logvar):
+        bce = nn.BCELoss()
+        bce_loss = bce(recon_x,x)
+
+        # see Appendix B from VAE paper:
+        # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
+        # https://arxiv.org/abs/1312.6114
+        # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
+        KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+
+        return bce_loss + KLD, bce_loss, KLD
+        
+
+class Encoder_MNIST(nn.Module):
     def __init__(self):
         super(Encoder,self).__init__()
         self.layer1 = nn.Sequential(nn.Conv2d(in_channels=1, out_channels=128, kernel_size=4, stride=2,padding=15),
@@ -29,7 +62,7 @@ class Encoder(nn.Module):
 
         return mu, logvar
 
-class Decoder(nn.Module):
+class Decoder_MNIST(nn.Module):
     def __init__(self):
         super(Decoder,self).__init__()
         self.layer1 = nn.Linear(in_features=8, out_features=7*7*1024)
