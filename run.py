@@ -1,4 +1,4 @@
-from utils import load_data_mnist,train,test
+from utils import load_data_mnist,train,test,save_model
 import torch
 import VAE
 import config
@@ -12,3 +12,5 @@ for epoch in range(50):
     train_loss = train(model,trainloader,optimizer,epoch)
     test_loss = test(model,testloader,epoch)
     print('Epoch: {} Train Loss: {} Test Loss: {}'.format(epoch,train_loss,test_loss))
+    if epoch % config.SAVEFREQ == 0:
+        save_model('MNIST',model,epoch)

@@ -73,7 +73,7 @@ def load_data_mnist(batch_size=config.batch_size, test=False):
 
     else:
         
-        train_data = pickle.load(open(train_path,'rb'))
+        train_data = pickle.load(open(train_path,'rb'), encoding='latin1')
         train_dataset = TensorDataset(torch.Tensor(train_data['data']), torch.IntTensor(train_data['labels']))
         trainloader = DataLoader(train_dataset,batch_size=batch_size,shuffle=True)
         if (test):
@@ -98,10 +98,10 @@ def save_images(recon_x,x,epoch):
     save_image(recon_x.data,'images/epoch_{}_recon.jpg'.format(epoch), nrow=6,padding=2)
 
 def save_model(name,model,epoch):
-    torch.save(model.state_dict(),"/data/milatmp1/goyettky/IFT6135/Project/WassersteinAutoEncoder/models/{}_{}_{}.pt".format(name,epoch))
+    torch.save(model.state_dict(),"/data/milatmp1/goyettky/IFT6135/Project/WAE/models/{}_{}_{}.pt".format(name,epoch))
     
 def load_model(fname,model):
-    loaded_state_dict = torch.load("/data/milatmp1/goyettky/IFT6135/Project/WassersteinAutoEncoder/models/{}_{}_{}.pt".format(fname))
+    loaded_state_dict = torch.load("/data/milatmp1/goyettky/IFT6135/Project/WAE/models/{}_{}_{}.pt".format(fname))
     state_dict = model.state_dict()
     state_dict.update(loaded_state_dict)
     model.load_state_dict(loaded_state_dict)
