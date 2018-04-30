@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import torch.nn
 import torch.nn.functional as F
+from torch.utils.data import DataLoader, TensorDataset
 import os
 import pickle
 import config
@@ -20,16 +21,13 @@ def load_data_mnist(batch_size=config.batch_size, test=False):
     else:
         
         train_data = pickle.load(open(train_path,'rb'),encoding='latin1')
-        train_data = np.array(train_data)
-
-        train_dataset = torch.utils.data.TensorDataset(torch.Tensor(train_data))
-        trainloader = torch.utils.data.Dataloader(train_dataset,batch_size=batch_size,shuffle=True)
+        train_dataset = TensorDataset(torch.Tensor(train_data['data']), torch.IntTensor(train_data['labels']))
+        trainloader = DataLoader(train_dataset,batch_size=batch_size,shuffle=True)
         if (test):
             test_data = pickle.load(open(test_path,'rb'), encoding='latin1')
-            test_data = np.array(test_data)
 
-            test_dataset = torch.utils.data.TensorDataset(torch.Tensor(test_data))
-            testloader = torch.utils.data.Dataloader(test_dataset,batch_size=batch_size,shuffle=True)
+            test_dataset = TensorDataset(torch.Tensor(test_data['data']), torch.IntTensor(test_data['labels']))
+            testloader = DataLoader(test_dataset,batch_size=batch_size,shuffle=True)
             return trainloader, testloader
 
-        return trainloader, _
+        return trainloader, None
