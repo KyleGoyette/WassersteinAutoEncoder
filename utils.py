@@ -8,16 +8,20 @@ from torch.utils.data import DataLoader, TensorDataset
 import os
 import pickle
 import config
-CUDA = config.CUDA
-def train_VAE(model, dloader,optimizer,num_epochs = config.NUMEPOCHS,add_noise=True):
+
+from torchvision.utils import save_image
+confs = config.conf_mnist
+def train(model, dloader,optimizer,add_noise=True):
+    train_loss = 0
     for epoch in config.NUMEPOCHS:
+        loss = []
         for batch_index, (data,_) in enumerate(dloader):  
-            if CUDA:
+            if confs['CUDA']:
                 data = data.cuda()
             if add_noise:
                 noise = torch.FloatTensor(torch.zeros(data.shape)).normal_()
                 noise = truncate_noise(noise)
-                if CUDA:
+                if confs['CUDA']:
                     noise = noise.cuda()
 
                 data += noise
@@ -30,11 +34,12 @@ def train_VAE(model, dloader,optimizer,num_epochs = config.NUMEPOCHS,add_noise=T
             mu, logvar = model.encode(data)
             z = model.reparameterize(mu,logvar)
             recon_x = model.decode(z)
-            loss,recon_loss, KLD_loss = model.loss(recon_x,data,mu,logvar)
-            loss.backward()
+            tot_loss,recon_loss, KLD_loss = model.loss(recon_x,data,mu,logvar)
+            tot_loss.backward()
             optimizer.step()
+            loss.append(tot_loss)
         
-        save_model(name,model,epoch) 
+         
 
 
 def load_data_mnist(batch_size=config.batch_size, test=False):
@@ -56,9 +61,16 @@ def load_data_mnist(batch_size=config.batch_size, test=False):
 
         return trainloader, None
 
+def load_data_celeba(batch_size=config.batch_size):
+    pass
+
 def truncate_noise(noise):
     return (100*noise).round()/100
 
+
+def save_images(recon_x,x,epoch):
+    save_image(x.data, 'images/epoch_{}_data.jpg'.format(epoch), nrow=6,padding=2)
+    save_image(recon_x.data,'images/epoch_{}_recon.jpg'.format(epoch), nrow=6,padding=2)
 
 def save_model(name,model,epoch):
     torch.save(model.state_dict(),"/data/milatmp1/goyettky/IFT6135/Project/WassersteinAutoEncoder/models/{}_{}_{}.pt".format(name,epoch))

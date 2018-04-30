@@ -5,10 +5,14 @@ import numpy as np
 import config
 
 class VAE(nn.Module):
-    def __init__(self):
+    def __init__(self,confs):
         super(VAE,self).__init__()
-        self.encoder = Encoder_MNIST()
-        self.decoder = Decoder_MNIST()
+        self.confs = confs
+        if confs['dataset'] == 'MNIST':
+            self.encoder = Encoder_MNIST()
+            self.decoder = Decoder_MNIST()
+        elif confs['dataset'] == 'Celeba':
+            pass #TODO MAKE CelebA encoder and decoder
         self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters()))
 
     def encode(self,x):
@@ -18,9 +22,9 @@ class VAE(nn.Module):
         return self.decoder.forward(z)
 
     def reparameterize(self,mu,logvar,n=config.batch_size):
-        eps = np.random.normal(0,1,(n,config.mnist_latentd))
+        eps = np.random.normal(0,1,(n,self.confs['latentd']))
         eps = torch.autograd.Variable(torch.from_numpy(eps))
-        if config.CUDA:
+        if confs.CUDA:
             eps = eps.cuda()
 
         return eps.float().mul(logvar.mul(0.5).exp()).add_(mu)
