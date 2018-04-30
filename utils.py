@@ -13,7 +13,7 @@ from torchvision.utils import save_image
 confs = config.conf_mnist
 def train(model, dloader,optimizer,add_noise=True):
     train_loss = 0
-    for epoch in config.NUMEPOCHS:
+    for epoch in range(config.NUMEPOCHS):
         loss = []
         for batch_index, (data,_) in enumerate(dloader):  
             if confs['CUDA']:
@@ -26,9 +26,9 @@ def train(model, dloader,optimizer,add_noise=True):
 
                 data += noise
             data = Variable(data)
-            if config.dataset == 'MNIST':
+            if confs['dataset'] == 'MNIST':
                 data = data.view(-1,1,28,28)
-            elif config.dataset == 'CelebA':
+            elif confs['dataset'] == 'CelebA':
                 data = data.view(-1,3,64,64)
             optimizer.zero_grad()
             mu, logvar = model.encode(data)
@@ -49,7 +49,7 @@ def load_data_mnist(batch_size=config.batch_size, test=False):
 
     else:
         
-        train_data = pickle.load(open(train_path,'rb'),encoding='latin1')
+        train_data = pickle.load(open(train_path,'rb'))
         train_dataset = TensorDataset(torch.Tensor(train_data['data']), torch.IntTensor(train_data['labels']))
         trainloader = DataLoader(train_dataset,batch_size=batch_size,shuffle=True)
         if (test):
