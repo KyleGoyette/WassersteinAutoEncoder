@@ -11,36 +11,59 @@ import config
 
 from torchvision.utils import save_image
 confs = config.conf_mnist
-def train(model, dloader,optimizer,add_noise=True):
+def train(model, dloader,optimizer, epoch,add_noise=True):
     train_loss = 0
-    for epoch in range(config.NUMEPOCHS):
-        loss = []
-        for batch_index, (data,_) in enumerate(dloader):  
+    for batch_index, (data,_) in enumerate(dloader):  
+        if confs['CUDA']:
+            data = data.cuda()
+        if add_noise:
+            noise = torch.FloatTensor(torch.zeros(data.shape)).normal_()
+            noise = truncate_noise(noise)
             if confs['CUDA']:
-                data = data.cuda()
-            if add_noise:
-                noise = torch.FloatTensor(torch.zeros(data.shape)).normal_()
-                noise = truncate_noise(noise)
-                if confs['CUDA']:
-                    noise = noise.cuda()
+                noise = noise.cuda()
 
-                data += noise
-            data = Variable(data)
-            if confs['dataset'] == 'MNIST':
-                data = data.view(-1,1,28,28)
-            elif confs['dataset'] == 'CelebA':
-                data = data.view(-1,3,64,64)
-            optimizer.zero_grad()
-            mu, logvar = model.encode(data)
-            z = model.reparameterize(mu,logvar)
-            recon_x = model.decode(z)
-            tot_loss,recon_loss, KLD_loss = model.loss(recon_x,data,mu,logvar)
-            tot_loss.backward()
-            optimizer.step()
-            loss.append(tot_loss)
-        
-         
+            data += noise
+        data = Variable(data)
+        if confs['dataset'] == 'MNIST':
+            data = data.view(-1,1,28,28)
+        elif confs['dataset'] == 'CelebA':
+            data = data.view(-1,3,64,64)
+        optimizer.zero_grad()
+        recon_x, mu, logvar = model.forward(data)
+        tot_loss,recon_loss, KLD_loss = model.loss(recon_x,data,mu,logvar)
+        tot_loss.backward()
+        optimizer.step()
+        train_loss += tot_loss.data[0]
 
+    train_loss = train_loss /(config.batch_size*len(dloader.dataset))
+    return train_loss
+
+def test(model,dloader,epoch,add_noise=True):
+    model.eval()
+    test_loss = 0
+
+    for batch_index, (data, _) in enumerate(dloader):
+        if confs['CUDA']: 
+            data = data.cuda()
+        orig_data = data.clone()
+        if add_noise:
+            noise = torch.FloatTensor(torch.zeros(data.shape)).normal_()
+            noise = truncate_noise(noise)
+            if confs['CUDA']:
+                noise = noise.cuda()
+            data += noise
+        data = Variable(data)
+        if confs['dataset'] == 'MNIST':
+            data = data.view(-1,1,28,28)
+        elif confs['dataset'] == 'CelebA':
+            data = data.view(-1,3,64,64)
+        recon_x, mu, logvar = model.forward(data)
+        loss, bce_loss, KLD_loss = model.loss(recon_x,Variable(orig_data),mu,logvar)
+        test_loss += loss.data[0]
+
+        if (epoch%config.REPORTFREQ == 0):
+            save_images(recon_x,x,epoch)
+        return test_loss/(config.batch_size*len(dloader.dataset))
 
 def load_data_mnist(batch_size=config.batch_size, test=False):
     train_path = '/data/lisa/data/mnist/mnist-python/train.pkl'
@@ -53,6 +76,7 @@ def load_data_mnist(batch_size=config.batch_size, test=False):
         train_dataset = TensorDataset(torch.Tensor(train_data['data']), torch.IntTensor(train_data['labels']))
         trainloader = DataLoader(train_dataset,batch_size=batch_size,shuffle=True)
         if (test):
+            test_path = '/data/lisa/data/mnist/mnist-python/test.pkl'
             test_data = pickle.load(open(test_path,'rb'), encoding='latin1')
 
             test_dataset = TensorDataset(torch.Tensor(test_data['data']), torch.IntTensor(test_data['labels']))

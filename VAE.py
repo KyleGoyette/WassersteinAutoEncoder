@@ -24,10 +24,17 @@ class VAE(nn.Module):
     def reparameterize(self,mu,logvar,n=config.batch_size):
         eps = np.random.normal(0,1,(n,self.confs['latentd']))
         eps = torch.autograd.Variable(torch.from_numpy(eps))
-        if confs.CUDA:
+        if self.confs['CUDA']:
             eps = eps.cuda()
 
         return eps.float().mul(logvar.mul(0.5).exp()).add_(mu)
+
+    def forward(self,x):
+        mu, logvar = self.encode(x)
+        z = self.reparameterize(mu,logvar)
+        recon_x = self.decode(z)
+
+        return recon_x, mu, logvar
 
     def loss(self,recon_x,x,mu,logvar):
         bce = nn.BCELoss()
@@ -40,6 +47,9 @@ class VAE(nn.Module):
         KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
         return bce_loss + KLD, bce_loss, KLD
+
+    def pretrain_loss(self,mu,logvar):
+        pass
         
 
 class Encoder_MNIST(nn.Module):
