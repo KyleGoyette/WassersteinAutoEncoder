@@ -10,4 +10,5 @@ if config.conf_mnist['CUDA']==True:
 optimizer = torch.optim.Adam(model.myparameters)
 for epoch in range(50):
     train_loss = train(model,trainloader,optimizer,epoch)
-    #test_loss = test(model,testloader,epoch)
+    test_loss = test(model,testloader,epoch)
+    print('Epoch: {} Train Loss: {} Test Loss: {}'.format(epoch,train_loss,test_loss))

@@ -14,6 +14,10 @@ class VAE(nn.Module):
         elif confs['dataset'] == 'Celeba':
             pass #TODO MAKE CelebA encoder and decoder
         self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters()))
+        if self.confs['CUDA']:
+            self.bce = nn.BCELoss(size_average=False).cuda()
+        else:
+            self.bce = nn.BCELoss(size_average=False)
 
     def encode(self,x):
         return self.encoder.forward(x)
@@ -22,10 +26,11 @@ class VAE(nn.Module):
         return self.decoder.forward(z)
 
     def reparameterize(self,mu,logvar,n=config.batch_size):
-        eps = np.random.normal(0,1,(n,self.confs['latentd']))
-        eps = torch.autograd.Variable(torch.from_numpy(eps))
+        
         if self.confs['CUDA']:
-            eps = eps.cuda()
+            eps = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
+        else:
+            eps = torch.autograd.Variable(torch.FloatTensor(logvar.shape).normal_())
 
         return eps.float().mul(logvar.mul(0.5).exp()).add_(mu)
 
@@ -37,8 +42,8 @@ class VAE(nn.Module):
         return recon_x, mu, logvar
 
     def loss(self,recon_x,x,mu,logvar):
-        bce = nn.BCELoss()
-        bce_loss = bce(recon_x,x)
+        
+        bce_loss = self.bce(recon_x,x)
 
         # see Appendix B from VAE paper:
         # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
@@ -102,4 +107,8 @@ class Decoder_MNIST(nn.Module):
         h1 = h1.view(-1,1024,7,7)
         return F.sigmoid(self.layer4(self.layer3(self.layer2(h1))))
 
-                
+
+#class Decoder_Celeba(nn.Module):
+#    def __init__(self):
+#        super(Decoder_Celeba,self).__init__()
+#        self.layer1 = 

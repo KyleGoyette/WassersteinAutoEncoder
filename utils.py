@@ -45,6 +45,10 @@ def test(model,dloader,epoch,add_noise=True):
     for batch_index, (data, _) in enumerate(dloader):
         if confs['CUDA']: 
             data = data.cuda()
+        if confs['dataset'] == 'MNIST':
+            data = data.view(-1,1,28,28)
+        elif confs['dataset'] == 'CelebA':
+            data = data.view(-1,3,64,64)
         orig_data = data.clone()
         if add_noise:
             noise = torch.FloatTensor(torch.zeros(data.shape)).normal_()
@@ -53,16 +57,13 @@ def test(model,dloader,epoch,add_noise=True):
                 noise = noise.cuda()
             data += noise
         data = Variable(data)
-        if confs['dataset'] == 'MNIST':
-            data = data.view(-1,1,28,28)
-        elif confs['dataset'] == 'CelebA':
-            data = data.view(-1,3,64,64)
+
         recon_x, mu, logvar = model.forward(data)
         loss, bce_loss, KLD_loss = model.loss(recon_x,Variable(orig_data),mu,logvar)
         test_loss += loss.data[0]
 
-        if (epoch%config.REPORTFREQ == 0):
-            save_images(recon_x,x,epoch)
+        #if (epoch%config.REPORTFREQ == 0):
+        #    save_images(recon_x,x,epoch)
         return test_loss/(config.batch_size*len(dloader.dataset))
 
 def load_data_mnist(batch_size=config.batch_size, test=False):
