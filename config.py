@@ -6,7 +6,7 @@ conf_mnist['CUDA'] = False
 
 celeba_latentd = 64
 
-batch_size = 10
+batch_size = 100
 
 SAVEFREQ = 10
 REPORTFREQ = 5

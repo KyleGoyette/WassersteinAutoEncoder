@@ -12,6 +12,7 @@ import config
 from torchvision.utils import save_image
 confs = config.conf_mnist
 def train(model, dloader,optimizer, epoch,add_noise=True):
+    model.train()
     train_loss = 0
     for batch_index, (data,_) in enumerate(dloader):  
         if confs['CUDA']:
@@ -65,9 +66,9 @@ def test(model,dloader,epoch,add_noise=True):
         loss, bce_loss, KLD_loss = model.loss(recon_x,Variable(orig_data),mu,logvar)
         test_loss += loss.data[0]
 
-        if (epoch%config.REPORTFREQ == 0):
-            save_images(recon_x,x,epoch)
-        return test_loss/(config.batch_size*len(dloader.dataset))
+    if (epoch%config.REPORTFREQ == 0):
+        save_images(recon_x,orig_data,epoch)
+    return test_loss/(config.batch_size*len(dloader.dataset))
 
 def load_data_mnist(batch_size=config.batch_size, test=False):
     train_path = '/data/lisa/data/mnist/mnist-python/train.pkl'
@@ -97,7 +98,7 @@ def truncate_noise(noise):
 
 
 def save_images(recon_x,x,epoch):
-    save_image(x.data, './images/epoch_{}_data.jpg'.format(epoch), nrow=6,padding=2)
+    save_image(x, './images/epoch_{}_data.jpg'.format(epoch), nrow=6,padding=2)
     save_image(recon_x.data,'./images/epoch_{}_recon.jpg'.format(epoch), nrow=6,padding=2)
 
 def save_model(name,model,epoch):
