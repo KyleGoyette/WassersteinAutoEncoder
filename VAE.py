@@ -11,7 +11,7 @@ class VAE(nn.Module):
         if confs['dataset'] == 'MNIST':
             self.encoder = Encoder_MNIST()
             self.decoder = Decoder_MNIST()
-        elif confs['dataset'] == 'Celeba':
+        elif confs['dataset'] == 'celeba':
             self.encoder = Encoder_Celeba()
             self.decoder = Decoder_Celeba()
         self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters()))
@@ -59,7 +59,7 @@ class VAE(nn.Module):
             KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
             return bce_loss + KLD, bce_loss, KLD
-        elif self.confs['dataset'] == 'Celeba':
+        elif self.confs['dataset'] == 'celeba':
             mse_loss = self.mse_loss(recon_x,x)
 
             KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
@@ -127,26 +127,23 @@ class Decoder_Celeba(nn.Module):
         super(Decoder_Celeba,self).__init__()
         self.layer1 = nn.Linear(in_features=64,out_features=8*8*1024)
         self.layer2 = nn.Sequential(
-            nn.ZeroPad2d((1,2,1,2)),
-            nn.ConvTranspose2d(in_channels=1024,out_channels=512,kernel_size=5,stride=2,padding=0),
-            nn.ReLu()
+            nn.ConvTranspose2d(in_channels=1024,out_channels=512,kernel_size=5,stride=2,padding=2, output_padding=1),
+            nn.ReLU()
         )
         self.layer3 = nn.Sequential(
-            nn.ZeroPad2d((1,2,1,2)),
-            nn.ConvTranspose2d(in_channels=512,out_channels=256,kernel_size=5,stride=2,padding=0),
+            nn.ConvTranspose2d(in_channels=512,out_channels=256,kernel_size=5,stride=2,padding=2,output_padding=1),
             nn.ReLU()
         )
         self.layer4 = nn.Sequential(
-            nn.ZeroPad2d((1,2,1,2)),
-            nn.ConvTranspose2d(in_channels=256,out_channels=128,kernel_size=5,stride=1,padding=0),
-            nn.ReLU()
+            nn.ConvTranspose2d(in_channels=256,out_channels=128,kernel_size=5,stride=2,padding=2,output_padding=1),
+            nn.ReLU(),
             nn.ConvTranspose2d(in_channels=128,out_channels=3,kernel_size=5,stride=1,padding=2)
         )
     def forward(self,x):
         h1 = self.layer1(x)
         h1 = h1.view(-1,1024,8,8)
         output = self.layer4(self.layer3(self.layer2(h1)))
-        return output.add_(torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_().mul_(0.3)))
+        return output.add_(torch.autograd.Variable(torch.cuda.FloatTensor(output.shape).normal_().mul_(0.3)))
 
 class Encoder_Celeba(nn.Module):
     def __init__(self):
@@ -164,15 +161,15 @@ class Encoder_Celeba(nn.Module):
             nn.ReLU()
         )
         self.layer4 = nn.Sequential(
-            nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=5,padding=0,stride=2),
+            nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=5,padding=2,stride=2),
             nn.ReLU(),
         )
-        self.layer5_mu = nn.Linear(in_features=1024,out_features=64)
-        self.layer5_logvar = nn.Linear(in_features=1024,out_features=64)
+        self.layer5_mu = nn.Linear(in_features=1024*4*4,out_features=64)
+        self.layer5_logvar = nn.Linear(in_features=1024*4*4,out_features=64)
 
     def forward(self,x):
         h4 = self.layer4(self.layer3(self.layer2(self.layer1(x))))
-        h4 = h4.view(-1,1024)
+        h4 = h4.view(-1,1024*4*4)
         return self.layer5_mu(h4), self.layer5_logvar(h4)
         
 
