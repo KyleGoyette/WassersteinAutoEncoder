@@ -102,10 +102,10 @@ def save_images(recon_x,x,epoch):
     save_image(recon_x.data,'./images/epoch_{}_recon.jpg'.format(epoch), nrow=6,padding=2)
 
 def save_model(name,model,epoch):
-    torch.save(model.state_dict(),"/data/milatmp1/goyettky/IFT6135/Project/WAE/models/{}_{}_{}.pt".format(name,epoch))
+    torch.save(model.state_dict(),"/data/milatmp1/goyettky/IFT6135/Project/WAE/models/{}_{}.pt".format(name,epoch))
     
 def load_model(fname,model):
-    loaded_state_dict = torch.load("/data/milatmp1/goyettky/IFT6135/Project/WAE/models/{}_{}_{}.pt".format(fname))
+    loaded_state_dict = torch.load("/data/milatmp1/goyettky/IFT6135/Project/WAE/models/{}".format(fname))
     state_dict = model.state_dict()
     state_dict.update(loaded_state_dict)
     model.load_state_dict(loaded_state_dict)
