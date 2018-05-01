@@ -100,25 +100,25 @@ def load_data_celeba(batch_size=config.batch_size,max_files = 0,test_split=0.2):
     save_root = '/data/milatmp1/goyettky/IFT6135/Project/WAE/data/'
     traindir = save_root+'train/'
     testdir = save_root+'test/'
-    train_loader = data.DataLoader(
+    train_loader = DataLoader(
         datasets.ImageFolder(traindir,
         transforms.Compose([
             transforms.CenterCrop(140),
             transforms.Resize(64),
-            transforms.Normalize(),
-            transforms.ToTensor()
+            transforms.ToTensor(),
+            transforms.Normalize([0,0,0], [1,1,1])
         ])),
-        batch_size=confs,
+        batch_size=config.batch_size,
         shuffle=True
     )
     
-    test_loader = data.DataLoader(
+    test_loader = DataLoader(
         datasets.ImageFolder(testdir,
         transforms.Compose([
             transforms.CenterCrop(140),
             transforms.Resize(64),
-            transforms.Normalize(),
-            transforms.ToTensor()
+            transforms.ToTensor(),
+            transforms.Normalize([0,0,0],[1,1,1])
         ])),
         batch_size=100,
         shuffle=True

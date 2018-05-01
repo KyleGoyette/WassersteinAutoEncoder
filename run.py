@@ -1,4 +1,4 @@
-from utils import load_data_mnist,train,test,save_model
+from utils import load_data_mnist, load_data_celeba,train,test,save_model
 import torch
 import VAE
 import config
@@ -18,7 +18,7 @@ if FLAGS.exp == "mnist_vae":
     optimizer = torch.optim.Adam(model.myparameters,lr = confs['lr'], betas=(confs['B1'],confs['B2']))
     scheduler1 = MultiStepLR(optimizer, milestones= confs['milestones1'],gamma=0.5)
     scheduler2 = MultiStepLR(optimizer, milestones= confs['milestones2'],gamma=0.2)
-elif FLAFS.exp == 'celeba_vae':
+elif FLAGS.exp == 'celeba_vae':
     confs = config.conf_celeba_vae
     model = VAE.VAE(confs)
     optimizer = torch.optim.Adam(model.myparameters,lr = confs['lr'], betas=(confs['B1'],confs['B2']))
@@ -35,7 +35,7 @@ if confs['CUDA']:
 
 train_losses = []
 test_losses = []
-
+print('Beginning training...')
 for epoch in range(confs['NUMEPOCHS']):
     scheduler1.step()
     scheduler2.step()

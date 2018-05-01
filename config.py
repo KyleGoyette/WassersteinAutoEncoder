@@ -16,7 +16,7 @@ conf_mnist_vae['noise'] = True
 #Celeba
 conf_celeba_vae = {}
 conf_celeba_vae['latentd'] = 64
-conf_celeba_vae['dataset'] = celeba
+conf_celeba_vae['dataset'] = 'celeba'
 conf_celeba_vae['CUDA'] = True
 conf_celeba_vae['lr'] = 10e-4
 conf_celeba_vae['B1'] = 0.5
