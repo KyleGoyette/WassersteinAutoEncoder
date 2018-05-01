@@ -42,16 +42,18 @@ class VAE(nn.Module):
         return recon_x, mu, logvar
 
     def loss(self,recon_x,x,mu,logvar):
-        
-        bce_loss = self.bce(recon_x,x)
+        if self.confs['dataset'] == 'MNIST':
+            bce_loss = self.bce(recon_x,x)
 
-        # see Appendix B from VAE paper:
-        # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
-        # https://arxiv.org/abs/1312.6114
-        # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-        KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+            # see Appendix B from VAE paper:
+            # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
+            # https://arxiv.org/abs/1312.6114
+            # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
+            KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
-        return bce_loss + KLD, bce_loss, KLD
+            return bce_loss + KLD, bce_loss, KLD
+        elif self.confs['dataset'] == 'Celeba':
+            pass
 
     def pretrain_loss(self,mu,logvar):
         pass
@@ -113,18 +115,54 @@ class Decoder_Celeba(nn.Module):
         super(Decoder_Celeba,self).__init__()
         self.layer1 = nn.Linear(in_features=64,out_features=8*8*1024)
         self.layer2 = nn.Sequential(
-            nn.ConvTranspose2d(in_channels=1024,out_channels=512,kernel_size=5,stride=2,padding=1),
-            nn.BatchNorm2d(512),
+            nn.ZeroPad2d((1,2,1,2)),
+            nn.ConvTranspose2d(in_channels=1024,out_channels=512,kernel_size=5,stride=2,padding=0),
             nn.ReLu()
         )
         self.layer3 = nn.Sequential(
-            nn.ConvTranspose2d(in_channels=512,out_channels=256,kernel_size=5,stride=2,padding=1),
-            nn.BatchNorm2d(256),
+            nn.ZeroPad2d((1,2,1,2)),
+            nn.ConvTranspose2d(in_channels=512,out_channels=256,kernel_size=5,stride=2,padding=0),
             nn.ReLU()
         )
         self.layer4 = nn.Sequential(
-            nn.ConvTranspose2d(in_channels=256,out_channels=128,kernel_size=5,stride=1,padding=1),
-            nn.BatchNorm2d(128),
+            nn.ZeroPad2d((1,2,1,2)),
+            nn.ConvTranspose2d(in_channels=256,out_channels=128,kernel_size=5,stride=1,padding=0),
             nn.ReLU()
-            nn.ConvTranspose2d()
+            nn.ConvTranspose2d(in_channels=128,out_channels=3,kernel_size=5,stride=1,padding=2)
         )
+    def forward(self,x):
+        h1 = self.layer1(x)
+        h1 = h1.view(-1,1024,8,8)
+        return F.sigmoid(self.layer4(self.layer3(self.layer2(h1))))
+
+class Encoder_Celeba(nn.Module):
+    def __init__(self):
+        super(Encoder_Celeba,self).__init__()
+        self.layer1 = nn.Sequential(
+            nn.Conv2d(in_channels=3,out_channels=128,kernel_size=5,padding=2,stride=2),
+            nn.ReLU()
+        )
+        self.layer2 = nn.Sequential(
+            nn.Conv2d(in_channels=128,out_channels=256,kernel_size=5,padding=2,stride=2),
+            nn.ReLU()
+        )
+        self.layer3 = nn.Sequential(
+            nn.Conv2d(in_channels=256,out_channels=512,kernel_size=5,padding=2,stride=2),
+            nn.ReLU()
+        )
+        self.layer4 = nn.Sequential(
+            nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=5,padding=0,stride=2),
+            nn.ReLU(),
+        )
+        self.layer5_mu = nn.Linear(in_features=1024,out_features=64)
+        self.layer5_logvar = nn.Linear(in_features=1024,out_features=64)
+
+    def forward(self,x):
+        h4 = self.layer4(self.layer3(self.layer2(self.layer1(x))))
+        h4 = h4.view(-1,1024)
+        return self.layer5_mu(h4), self.layer5_logvar(h4)
+        
+
+
+
+        

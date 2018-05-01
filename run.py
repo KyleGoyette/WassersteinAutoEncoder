@@ -11,7 +11,7 @@ parser.add_argument("--exp", default="mnist_vae", help="mnist_vae, mnist_wae_mmd
 
 FLAGS = parser.parse_args()
 
-if FLAGS.exp == "mnist_vae"
+if FLAGS.exp == "mnist_vae":
     confs = config.conf_mnist_vae
     trainloader, testloader = load_data_mnist()
     model = VAE.VAE(confs)
@@ -31,8 +31,11 @@ for epoch in range(confs['NUMEPOCHS']):
     train_loss = train(model,trainloader,optimizer,epoch)
     train_losses.append(train_loss)
     if testloader != None:
-        test_loss = test(model,testloader,epoch)
+        test_loss = test(model,testloader,epoch,add_noise=confs['noise'])
         test_losses.append(test_loss)
-    print('Epoch: {} Train Loss: {} Test Loss: {}'.format(epoch,train_loss,test_loss))
+        print('Epoch: {} Train Loss: {} Test Loss: {}'.format(epoch,train_loss,test_loss))
+    else:
+        print('Epoch: {} Train Loss: {}'.format(epoch,train_loss))
     if epoch % config.SAVEFREQ == 0:
         save_model(confs['dataset'],model,epoch)
+save_model(confs['dataset'],model,epoch)

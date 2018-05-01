@@ -3,11 +3,13 @@ import numpy as np
 import torch
 import torch.nn
 import torch.nn.functional as F
+from torchvision import datasets, transforms
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, TensorDataset
 import os
 import pickle
 import config
+from PIL import Image
 
 from torchvision.utils import save_image
 confs = config.conf_mnist_vae
@@ -78,6 +80,9 @@ def load_data_mnist(batch_size=config.batch_size, test=False):
     else:
         
         train_data = pickle.load(open(train_path,'rb'), encoding='latin1')
+        #maxvals = np.max(train_data['data'])
+        #minvals = np.min(train_data['data'])
+        #train_data['data'] = (train_data['data'] - minvals)/(maxvals-minvals)*2 -1
         train_dataset = TensorDataset(torch.Tensor(train_data['data']), torch.IntTensor(train_data['labels']))
         trainloader = DataLoader(train_dataset,batch_size=batch_size,shuffle=True)
         if (test):
@@ -90,8 +95,67 @@ def load_data_mnist(batch_size=config.batch_size, test=False):
 
         return trainloader, None
 
-def load_data_celeba(batch_size=config.batch_size):
-    pass
+def load_data_celeba(batch_size=config.batch_size,max_files = 0,test_split=0.2):
+    save_root = '/data/milatmp1/goyettky/'
+    traindir = save_root+'train/'
+    testdir = save_root+'test/'
+    train_loader = data.DataLoader(
+        datasets.ImageFolder(traindir,
+        transforms.Compose([
+            transforms.CenterCrop(140),
+            transforms.Resize(64),
+            transforms.Normalize(),
+            transforms.ToTensor()
+        ])),
+        batch_size=100,
+        shuffle=True
+    )
+    
+    test_loader = data.DataLoader(
+        datasets.ImageFolder(testdir,
+        transforms.Compose([
+            transforms.CenterCrop(140),
+            transforms.Resize(64),
+            transforms.Normalize(),
+            transforms.ToTensor()
+        ])),
+        batch_size=100,
+        shuffle=True
+    )
+
+    return train_loader, test_loader
+
+def create_celeba_datapaths():
+    root = '/data/'
+    data_path = root + 'lisa/data/celeba/'
+    save_root = '/data/milatmp1/goyettky/'
+    traindir = save_root+'train/'
+    testdir = save_root+'test/'
+
+    split = 0.9
+
+    if not os.path.isdir(save_root):
+        os.mkdir(save_root)
+    if not os.path.isdir(traindir):
+        os.mkdir(traindir)
+        os.mkdir(traindir+'unsup')
+    if not os.path.isdir(testdir):
+        os.mkdir(testdir)
+        os.mkdir(testdir+'unsup')
+    if not os.path.isdir(save_root + 'celebA'):
+        os.mkdir(save_root + 'celebA')
+
+    img_list = os.listdir(data_path + 'img_align_celeba/')
+    max_images = int(len(img_list)*0.1)
+    for i in range(len(img_list)):
+        if (i%1000 ==0 ):
+            print('Prepared {} images'.format((i+1)*1000))
+        img = plt.imread(data_path + 'img_align_celeba/' + img_list[i])
+        save_dir = [traindir, testdir][i//int(max_images*split_size)]
+        plt.imsave(fname=save_dir + 'unsup/' + img_list[i], arr=img)     
+
+    
+    
 
 def truncate_noise(noise):
     return (100*noise).round()/100
