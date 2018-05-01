@@ -60,16 +60,16 @@ class VAE(nn.Module):
 class Encoder_MNIST(nn.Module):
     def __init__(self):
         super(Encoder_MNIST,self).__init__()
-        self.layer1 = nn.Sequential(nn.Conv2d(in_channels=1, out_channels=128, kernel_size=4, stride=2,padding=15),
+        self.layer1 = nn.Sequential(nn.Conv2d(in_channels=1, out_channels=128, kernel_size=4, stride=2,padding=1),
                                     nn.BatchNorm2d(128),
                                     nn.ReLU())
-        self.layer2 = nn.Sequential(nn.Conv2d(in_channels=128, out_channels=256, kernel_size=4, stride=2,padding=15),
+        self.layer2 = nn.Sequential(nn.Conv2d(in_channels=128, out_channels=256, kernel_size=4, stride=2,padding=1),
                                     nn.BatchNorm2d(256),
                                     nn.ReLU())
-        self.layer3 = nn.Sequential(nn.Conv2d(in_channels=256, out_channels=512, kernel_size=4, stride=2,padding=15),
+        self.layer3 = nn.Sequential(nn.Conv2d(in_channels=256, out_channels=512, kernel_size=4, stride=2,padding=2),
                                     nn.BatchNorm2d(512),
                                     nn.ReLU())
-        self.layer4 = nn.Sequential(nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=4, stride=2,padding=15),
+        self.layer4 = nn.Sequential(nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=4, stride=2,padding=0),
                                     nn.BatchNorm2d(1024),
                                     nn.ReLU())
         self.fc_layer_mean = nn.Linear(in_features=1024*28*28, out_features=8)
@@ -108,7 +108,23 @@ class Decoder_MNIST(nn.Module):
         return F.sigmoid(self.layer4(self.layer3(self.layer2(h1))))
 
 
-#class Decoder_Celeba(nn.Module):
-#    def __init__(self):
-#        super(Decoder_Celeba,self).__init__()
-#        self.layer1 = 
+class Decoder_Celeba(nn.Module):
+    def __init__(self):
+        super(Decoder_Celeba,self).__init__()
+        self.layer1 = nn.Linear(in_features=64,out_features=8*8*1024)
+        self.layer2 = nn.Sequential(
+            nn.ConvTranspose2d(in_channels=1024,out_channels=512,kernel_size=5,stride=2,padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLu()
+        )
+        self.layer3 = nn.Sequential(
+            nn.ConvTranspose2d(in_channels=512,out_channels=256,kernel_size=5,stride=2,padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU()
+        )
+        self.layer4 = nn.Sequential(
+            nn.ConvTranspose2d(in_channels=256,out_channels=128,kernel_size=5,stride=1,padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU()
+            nn.ConvTranspose2d()
+        )
