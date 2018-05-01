@@ -72,8 +72,8 @@ class Encoder_MNIST(nn.Module):
         self.layer4 = nn.Sequential(nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=4, stride=2,padding=0),
                                     nn.BatchNorm2d(1024),
                                     nn.ReLU())
-        self.fc_layer_mean = nn.Linear(in_features=1024*28*28, out_features=8)
-        self.fc_layer_logvar = nn.Linear(in_features=1024*28*28,out_features=8)
+        self.fc_layer_mean = nn.Linear(in_features=1024*2*2, out_features=8)
+        self.fc_layer_logvar = nn.Linear(in_features=1024*2*2,out_features=8)
 
     def forward(self,x):
 
