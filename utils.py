@@ -10,9 +10,10 @@ import os
 import pickle
 import config
 from PIL import Image
+import matplotlib.pyplot as plt
 
 from torchvision.utils import save_image
-confs = config.conf_mnist_vae
+confs = config.conf_celeba_vae
 def train(model, dloader,optimizer, epoch,add_noise=True):
     model.train()
     train_loss = 0
@@ -68,7 +69,7 @@ def test(model,dloader,epoch,add_noise=True):
         loss, bce_loss, KLD_loss = model.loss(recon_x,Variable(orig_data),mu,logvar)
         test_loss += loss.data[0]
 
-    if (epoch%config.REPORTFREQ == 0):
+    if (epoch%config.REPORTFREQ == 0) or epoch == confs['NUMEPOCHS']:
         save_images(recon_x,orig_data,epoch)
     return test_loss/(config.batch_size*len(dloader.dataset))
 
@@ -96,7 +97,7 @@ def load_data_mnist(batch_size=config.batch_size, test=False):
         return trainloader, None
 
 def load_data_celeba(batch_size=config.batch_size,max_files = 0,test_split=0.2):
-    save_root = '/data/milatmp1/goyettky/'
+    save_root = '/data/milatmp1/goyettky/IFT6135/Project/WAE/data/'
     traindir = save_root+'train/'
     testdir = save_root+'test/'
     train_loader = data.DataLoader(
@@ -107,7 +108,7 @@ def load_data_celeba(batch_size=config.batch_size,max_files = 0,test_split=0.2):
             transforms.Normalize(),
             transforms.ToTensor()
         ])),
-        batch_size=100,
+        batch_size=confs,
         shuffle=True
     )
     
@@ -125,10 +126,10 @@ def load_data_celeba(batch_size=config.batch_size,max_files = 0,test_split=0.2):
 
     return train_loader, test_loader
 
-def create_celeba_datapaths():
+def create_celeba_datapaths(split=0.9):
     root = '/data/'
     data_path = root + 'lisa/data/celeba/'
-    save_root = '/data/milatmp1/goyettky/'
+    save_root = '/data/milatmp1/goyettky/IFT6135/Project/WAE/data/'
     traindir = save_root+'train/'
     testdir = save_root+'test/'
 
@@ -149,7 +150,7 @@ def create_celeba_datapaths():
     max_images = int(len(img_list)*0.1)
     for i in range(len(img_list)):
         if (i%1000 ==0 ):
-            print('Prepared {} images'.format((i+1)*1000))
+            print('Prepared {} images'.format((i)))
         img = plt.imread(data_path + 'img_align_celeba/' + img_list[i])
         save_dir = [traindir, testdir][i//int(max_images*split_size)]
         plt.imsave(fname=save_dir + 'unsup/' + img_list[i], arr=img)     

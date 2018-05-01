@@ -13,11 +13,22 @@ FLAGS = parser.parse_args()
 
 if FLAGS.exp == "mnist_vae":
     confs = config.conf_mnist_vae
-    trainloader, testloader = load_data_mnist()
+
     model = VAE.VAE(confs)
     optimizer = torch.optim.Adam(model.myparameters,lr = confs['lr'], betas=(confs['B1'],confs['B2']))
     scheduler1 = MultiStepLR(optimizer, milestones= confs['milestones1'],gamma=0.5)
     scheduler2 = MultiStepLR(optimizer, milestones= confs['milestones2'],gamma=0.2)
+elif FLAFS.exp == 'celeba_vae':
+    confs = config.conf_celeba_vae
+    model = VAE.VAE(confs)
+    optimizer = torch.optim.Adam(model.myparameters,lr = confs['lr'], betas=(confs['B1'],confs['B2']))
+    scheduler1 = MultiStepLR(optimizer, milestones= confs['milestones1'],gamma=0.5)
+    scheduler2 = MultiStepLR(optimizer, milestones= confs['milestones2'],gamma=0.2)
+
+if confs['dataset']== 'MNIST':
+    trainloader, testloader = load_data_mnist()
+elif confs['dataset'] == 'celeba':
+    trainloader, testloader = load_data_celeba()
 
 if confs['CUDA']:
     model.cuda()
