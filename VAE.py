@@ -12,7 +12,8 @@ class VAE(nn.Module):
             self.encoder = Encoder_MNIST()
             self.decoder = Decoder_MNIST()
         elif confs['dataset'] == 'Celeba':
-            pass #TODO MAKE CelebA encoder and decoder
+            self.encoder = Encoder_Celeba()
+            self.decoder = Decoder_Celeba()
         self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters()))
         if self.confs['dataset'] == 'MNIST':
             if self.confs['CUDA']:
@@ -60,6 +61,10 @@ class VAE(nn.Module):
             return bce_loss + KLD, bce_loss, KLD
         elif self.confs['dataset'] == 'Celeba':
             mse_loss = self.mse_loss(recon_x,x)
+
+            KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+
+            return mse_loss + KLD, mse_loss, KLD
             
 
     def pretrain_loss(self,mu,logvar):
@@ -140,7 +145,8 @@ class Decoder_Celeba(nn.Module):
     def forward(self,x):
         h1 = self.layer1(x)
         h1 = h1.view(-1,1024,8,8)
-        return F.sigmoid(self.layer4(self.layer3(self.layer2(h1))))
+        output = self.layer4(self.layer3(self.layer2(h1)))
+        return output.add_(torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_().mul_(0.3)))
 
 class Encoder_Celeba(nn.Module):
     def __init__(self):
