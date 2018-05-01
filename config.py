@@ -1,11 +1,14 @@
 #MNIST
 conf_mnist={}
-conf_mnist['latentd'] = 8
-conf_mnist['dataset'] = 'MNIST'
-conf_mnist['CUDA'] = False
-conf_mnist['lr'] = 10e-3
-conf_mnist['B1'] = 0.5
-conf_mnist['B2'] = 0.999
+conf_mnist_vae['latentd'] = 8
+conf_mnist_vae['dataset'] = 'MNIST'
+conf_mnist_vae['CUDA'] = False
+conf_mnist_vae['lr'] = 10e-3
+conf_mnist_vae['B1'] = 0.5
+conf_mnist_vae['B2'] = 0.999
+conf_mnist_vae['milestones1'] = [30]
+conf_mnist_vae['milestones2'] = [50]
+conf_mnist_vae['NUMEPOCHS'] = 100
 
 celeba_latentd = 64
 

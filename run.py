@@ -2,18 +2,32 @@ from utils import load_data_mnist,train,test,save_model
 import torch
 import VAE
 import config
-trainloader, testloader = load_data_mnist()
-model = VAE.VAE(config.conf_mnist)
+from torch.optim.lr_scheduler import MultiStepLR
+import argparse
 
-confs = config.conf_mnist
-if config.conf_mnist['CUDA']==True:
+parser = argparse.ArgumentParser()
+parser.add_argument("--exp", default="mnist_vae", help="mnist_vae, mnist_wae_mmd, mnist_wae_gan,celeba...")
+
+
+FLAGS = parser.parse_args()
+
+if FLAGS.exp == "mnist_vae"
+    confs = config.conf_mnist_vae
+    trainloader, testloader = load_data_mnist()
+    model = VAE.VAE(confs)
+    optimizer = torch.optim.Adam(model.myparameters,lr = confs['lr'], betas=(confs['B1'],confs['B2']))
+    scheduler1 = MultiStepLR(optimizer, milestones= confs['milestones1'],gamma=0.5)
+    scheduler2 = MultiStepLR(optimizer, milestones= confs['milestones2'],gamma=0.2)
+
+if confs['CUDA']:
     model.cuda()
-optimizer = torch.optim.Adam(model.myparameters,lr = confs['lr'], betas=(confs['B1'],confs['B2']))
 
 train_losses = []
 test_losses = []
 
-for epoch in range(config.NUMEPOCHS):
+for epoch in range(confs['NUMEPOCHS']):
+    scheduler1.step()
+    scheduler2.step()
     train_loss = train(model,trainloader,optimizer,epoch)
     train_losses.append(train_loss)
     if testloader != None:

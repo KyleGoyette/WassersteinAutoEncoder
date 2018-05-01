@@ -10,7 +10,7 @@ import pickle
 import config
 
 from torchvision.utils import save_image
-confs = config.conf_mnist
+confs = config.conf_mnist_vae
 def train(model, dloader,optimizer, epoch,add_noise=True):
     model.train()
     train_loss = 0
