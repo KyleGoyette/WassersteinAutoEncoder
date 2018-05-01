@@ -45,7 +45,7 @@ def train(model, dloader,optimizer, epoch,add_noise=True):
     train_loss = train_loss /(config.batch_size*len(dloader.dataset))
     return train_loss
 
-def test(model,dloader,epoch,add_noise=True):
+def test(model,dloader,epoch,confs,add_noise=True):
     model.eval()
     test_loss = 0
 
@@ -70,7 +70,7 @@ def test(model,dloader,epoch,add_noise=True):
         test_loss += loss.data[0]
 
     if (epoch%config.REPORTFREQ == 0) or epoch == confs['NUMEPOCHS']:
-        save_images(recon_x,orig_data,epoch)
+        save_images(recon_x,orig_data,epoch,confs)
     return test_loss/(config.batch_size*len(dloader.dataset))
 
 def load_data_mnist(batch_size=config.batch_size, test=False):
@@ -147,12 +147,12 @@ def create_celeba_datapaths(split=0.9):
         os.mkdir(save_root + 'celebA')
 
     img_list = os.listdir(data_path + 'img_align_celeba/')
-    max_images = int(len(img_list)*0.1)
+    max_images = int(len(img_list))
     for i in range(len(img_list)):
         if (i%1000 ==0 ):
             print('Prepared {} images'.format((i)))
         img = plt.imread(data_path + 'img_align_celeba/' + img_list[i])
-        save_dir = [traindir, testdir][i//int(max_images*split_size)]
+        save_dir = [traindir, testdir][i//int(max_images*split)]
         plt.imsave(fname=save_dir + 'unsup/' + img_list[i], arr=img)     
 
     
@@ -162,8 +162,8 @@ def truncate_noise(noise):
     return (100*noise).round()/100
 
 
-def save_images(recon_x,x,epoch):
-    save_image(x, './images/epoch_{}_data.jpg'.format(epoch), nrow=6,padding=2)
+def save_images(recon_x,x,epoch,confs):
+    save_image(x, './images/{}/epoch_{}_data.jpg'.format(confs['dataset'],epoch), nrow=6,padding=2)
     save_image(recon_x.data,'./images/epoch_{}_recon.jpg'.format(epoch), nrow=6,padding=2)
 
 def save_model(name,model,epoch):

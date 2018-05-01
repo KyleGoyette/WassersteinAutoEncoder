@@ -1,5 +1,6 @@
 #MNIST
 conf_mnist_vae={}
+conf_mnist_vae['type'] = 'VAE'
 conf_mnist_vae['latentd'] = 8
 conf_mnist_vae['dataset'] = 'MNIST'
 conf_mnist_vae['CUDA'] = False
@@ -15,6 +16,7 @@ conf_mnist_vae['noise'] = True
 
 #Celeba
 conf_celeba_vae = {}
+conf_celeba_vae['type'] = 'VAE'
 conf_celeba_vae['latentd'] = 64
 conf_celeba_vae['dataset'] = 'celeba'
 conf_celeba_vae['CUDA'] = True
