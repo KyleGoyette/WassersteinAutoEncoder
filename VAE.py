@@ -14,11 +14,17 @@ class VAE(nn.Module):
         elif confs['dataset'] == 'Celeba':
             pass #TODO MAKE CelebA encoder and decoder
         self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters()))
-        if self.confs['CUDA']:
-            self.bce = nn.BCELoss(size_average=False).cuda()
-        else:
-            self.bce = nn.BCELoss(size_average=False)
-
+        if self.confs['dataset'] == 'MNIST':
+            if self.confs['CUDA']:
+                self.bce = nn.BCELoss(size_average=False).cuda()
+            else:
+                self.bce = nn.BCELoss(size_average=False)
+        elif self.confs['dataset'] == 'celeba':
+            if self.confs['CUDA']:
+                self.mse = nn.MSELoss(size_average=False).cuda()
+            else:
+                self.mse = nn.MSELoss(size_average=False)
+            
     def encode(self,x):
         return self.encoder.forward(x)
 
@@ -53,7 +59,8 @@ class VAE(nn.Module):
 
             return bce_loss + KLD, bce_loss, KLD
         elif self.confs['dataset'] == 'Celeba':
-            pass
+            mse_loss = self.mse_loss(recon_x,x)
+            
 
     def pretrain_loss(self,mu,logvar):
         pass
