@@ -60,7 +60,7 @@ class VAE(nn.Module):
 
             return bce_loss + KLD, bce_loss, KLD
         elif self.confs['dataset'] == 'celeba':
-            mse_loss = self.mse_loss(recon_x,x)
+            mse_loss = self.mse(recon_x,x)
 
             KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
