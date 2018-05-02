@@ -70,9 +70,9 @@ class WAE_GAN(nn.Module):
         mean_pz = torch.mean(sample_noise,dim=0)
         mean_qz = torch.mean(sample_q,dim=0)
         mean_loss = torch.mean(torch.square(mean_pz-mean_qz))
-        cov_pz = torch.matmul((sample_noise - mean_pz).t, sample_noise-mean_pz)
+        cov_pz = torch.matmul((sample_noise - mean_pz).t(), sample_noise-mean_pz)
         cov_pz /= config.batch_size -1
-        cov_qz = torch.matmul((sample_q-mean_qz).t,(sample_q-mean_qz))
+        cov_qz = torch.matmul((sample_q-mean_qz).t(),(sample_q-mean_qz))
         conv_qz /= config.batch_size -1
         cov_loss = torch.mean(torch.square(cov_pq-cov_qz))
         return mean_loss + cov_loss
@@ -127,13 +127,13 @@ class WAE_MMD(nn.Module):
         
         qz_norm = torch.sum(z_tilde**2,dim=1)
         pz_norm = torch.sum(z**2,dim=1)
-        qzqz_dot = torch.matmul(z_tilde,z_tilde.t)
-        pzpz_dot = torch.matmul(z,z.t)
-        qzpz_dot = torch.matmul(z_tilde, z.t)
+        qzqz_dot = torch.matmul(z_tilde,z_tilde.t())
+        pzpz_dot = torch.matmul(z,z.t())
+        qzpz_dot = torch.matmul(z_tilde, z.t())
 
-        qz_dist = x_norm + x_norm.transpose(1,0) - 2.0 * xx
-        pz_dist = y_norm + y_norm.transpose(1,0) - 2.0*yy
-        qzpz_dist = y_norm + norm_x.transpose(1,0) -2.0 *xy
+        qz_dist = qz_norm + qz_norm.transpose(1,0) - 2.0 * qzqz_dot
+        pz_dist = pz_norm + pz_norm.transpose(1,0) - 2.0*pzpz_dot
+        qzpz_dist = pz_norm + qz_norm.transpose(1,0) -2.0 *qzpz_dot
 
         C_init = 2.0*self.confs['latentd']*(self.confs['sigma_z']**2)
 
