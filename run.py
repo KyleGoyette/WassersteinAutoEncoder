@@ -73,6 +73,6 @@ for epoch in range(confs['NUMEPOCHS']):
         print('Epoch: {} Train Loss: {}'.format(epoch,train_loss))
     if epoch % config.SAVEFREQ == 0:
         save_model(confs['dataset']+'_'+confs['type'],model,epoch)
-save_model(confs['dataset'],model,epoch)
+save_model(confs['dataset'],model,epoch,confs)
 np.save('./losses/{}_train'.format(FLAGS.exp),train_losses)
 np.save('./losses/{}_test'.format(FLAGS.exp),test_losses)

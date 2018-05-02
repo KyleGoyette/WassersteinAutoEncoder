@@ -16,7 +16,7 @@ class WAE_GAN(nn.Module):
             self.encoder = Encoder_Celeba()
             self.decoder = Decoder_Celeba()
             self.discriminator = Discriminator(confs)
-        self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters()))
+        self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters())+list(self.discriminator.parameters()))
 
         if self.confs['CUDA']:
             self.mse = nn.MSELoss(size_average=False).cuda()
@@ -50,7 +50,7 @@ class WAE_GAN(nn.Module):
     def loss(self,recon_x,x,z,z_tilde):
 
         mse_loss = torch.sum(self.mse(recon_x,x))
-        mse_loss = mse_loss/config.batch_size
+        mse_loss = mse_loss
         z_tilde_discrim = z_tilde.detach()
         p_preds = self.discriminator.forward(z)
         q_preds = self.discriminator.forward(z_tilde_discrim)
@@ -61,7 +61,7 @@ class WAE_GAN(nn.Module):
         loss_p = self.discrim_loss(p_preds,torch.ones_like(p_preds))
 
         d_loss = self.confs['lambda']*(loss_q + loss_p)/config.batch_size
-        enc_dec_loss = mse_loss + self.confs['lambda']*penalty
+        enc_dec_loss = (mse_loss + self.confs['lambda']*penalty)/config.batch_size
         return enc_dec_loss, d_loss
             
 
