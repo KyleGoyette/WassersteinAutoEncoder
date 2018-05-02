@@ -108,6 +108,33 @@ def test(model,dloader,epoch,confs,add_noise=True):
         save_images(recon_x,orig_data,epoch,confs)
     return test_loss/(config.batch_size*len(dloader.dataset))
 
+def pretrain(model,train_loader,optimizer):
+    for batch_index, (data, _) in train_loader:
+
+        if confs['CUDA']:
+            data = data.cuda()
+        
+        if confs['dataset'] == 'MNIST':
+            data = data.view(-1,1,28,28)
+        elif confs['dataset'] == 'CelebA':
+            data = data.view(-1,3,64,64)
+        orig_data = data.clone()
+        if add_noise:
+            noise = torch.FloatTensor(torch.zeros(data.shape)).normal_()
+            noise = truncate_noise(noise)
+            if confs['CUDA']:
+                noise = noise.cuda()
+
+            data += noise
+        data = Variable(data)
+        mu, logvar = model.encode(data)
+        loss = model.pretain_loss(mu,logvar)
+        loss.backward()
+        optimizer.step()
+
+        print(loss.data[0])
+
+
 def load_data_mnist(batch_size=config.batch_size, test=False):
     train_path = '/data/lisa/data/mnist/mnist-python/train.pkl'
     if not os.path.isfile(train_path):

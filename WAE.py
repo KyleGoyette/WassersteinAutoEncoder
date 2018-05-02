@@ -16,7 +16,7 @@ class WAE_GAN(nn.Module):
             self.encoder = Encoder_Celeba()
             self.decoder = Decoder_Celeba()
             self.discriminator = Discriminator(confs)
-        self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters())))
+        self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters()))
 
         if self.confs['CUDA']:
             self.mse = nn.MSELoss(size_average=False).cuda()
@@ -50,10 +50,9 @@ class WAE_GAN(nn.Module):
     def loss(self,recon_x,x,z,z_tilde):
 
         mse_loss = torch.sum(self.mse(recon_x,x))
-        z_tilde_discrim = z_tilde.detach()
+        
         p_preds = self.discriminator.forward(z)
         q_preds = self.discriminator.forward(z_tilde)
-        q_preds_discrim = self.discriminator.forward(z_tilde_discrim)
         
         penalty = self.discrim_loss(q_preds,torch.ones_like(q_preds))
         #for discriminator
@@ -66,8 +65,17 @@ class WAE_GAN(nn.Module):
             
 
     def pret_loss(self,mu,logvar):
-        pass
-
+        sample_noise = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
+        sample_q = self.reparameterize(mu,logvar)
+        mean_pz = torch.mean(sample_noise,dim=0)
+        mean_qz = torch.mean(sample_q,dim=0)
+        mean_loss = torch.mean(torch.square(mean_pz-mean_qz))
+        cov_pz = torch.matmul((sample_noise - mean_pz).t, sample_noise-mean_pz)
+        cov_pz /= config.batch_size -1
+        cov_qz = torch.matmul((sample_q-mean_qz).t,(sample_q-mean_qz))
+        conv_qz /= config.batch_size -1
+        cov_loss = torch.mean(torch.square(cov_pq-cov_qz))
+        return mean_loss + cov_loss
 class Discriminator(nn.Module):
     def __init__(self,confs):
         super(Discriminator,self).__init__()

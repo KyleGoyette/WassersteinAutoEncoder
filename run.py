@@ -1,4 +1,4 @@
-from utils import load_data_mnist, load_data_celeba,train,test,save_model
+from utils import load_data_mnist, load_data_celeba,train,test,save_model, pretrain
 import torch
 import VAE
 import WAE
@@ -53,6 +53,12 @@ elif confs['dataset'] == 'celeba':
 
 if confs['CUDA']:
     model.cuda()
+
+
+
+if confs['pretrain']:
+    optimizer_p = torch.optim.Adam(model.encoder.parameters(),lr = confs['lr'], betas=(confs['B1_disc'],confs['B2_disc']))
+    pretrain(model,train_loader,optimizer_p)
 
 train_losses = []
 test_losses = []
