@@ -6,7 +6,7 @@ import config
 
 class WAE_GAN(nn.Module):
     def __init__(self,confs):
-        super(VAE,self).__init__()
+        super(WAE_GAN,self).__init__()
         self.confs = confs
         if confs['dataset'] == 'MNIST':
             self.encoder = Encoder_MNIST()

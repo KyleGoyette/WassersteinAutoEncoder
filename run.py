@@ -24,13 +24,26 @@ elif FLAGS.exp == 'celeba_vae':
     optimizer = torch.optim.Adam(model.myparameters,lr = confs['lr'], betas=(confs['B1'],confs['B2']))
     scheduler1 = MultiStepLR(optimizer, milestones= confs['milestones1'],gamma=0.5)
     scheduler2 = MultiStepLR(optimizer, milestones= confs['milestones2'],gamma=0.2)
-elif Flags.exp == 'mnist_waegan':
+elif FLAGS.exp == 'mnist_waegan':
     confs = config.conf_mnist_wae_gan
     model = WAE.WAE_GAN(confs)
     optimizer_wae = torch.optim.Adam(model.myparameters,lr = confs['lr'], betas=(confs['B1'],confs['B2']))
     optimizer_disc = torch.optim.Adam(model.myparameters,lr = confs['lr_disc'], betas=(confs['B1_disc'],confs['B2_disc']))
     scheduler1 = MultiStepLR(optimizer, milestones= confs['milestones1'],gamma=0.5)
     scheduler2 = MultiStepLR(optimizer, milestones= confs['milestones2'],gamma=0.2)
+    scheduler1_disc = MultiStepLR(optimizer_disc, milestones= confs['milestones1'],gamma=0.5)
+    scheduler2_disc = MultiStepLR(optimizer_disc, milestones= confs['milestones2'],gamma=0.2)
+    optimizer = (optimizer_wae, optimizer_disc)
+
+elif FLAGS.exp == 'celeba_waegan':
+    confs = config.conf_celeba_wae_gan
+    model = WAE.WAE_GAN(confs)
+    optimizer_wae = torch.optim.Adam(model.myparameters,lr = confs['lr'], betas=(confs['B1'],confs['B2']))
+    optimizer_disc = torch.optim.Adam(model.myparameters,lr = confs['lr_disc'], betas=(confs['B1_disc'],confs['B2_disc']))
+    scheduler1 = MultiStepLR(optimizer, milestones= confs['milestones1'],gamma=0.5)
+    scheduler2 = MultiStepLR(optimizer, milestones= confs['milestones2'],gamma=0.2)
+    scheduler1_disc = MultiStepLR(optimizer_disc, milestones= confs['milestones1'],gamma=0.5)
+    scheduler2_disc = MultiStepLR(optimizer_disc, milestones= confs['milestones2'],gamma=0.2)
     optimizer = (optimizer_wae, optimizer_disc)
 
 if confs['dataset']== 'MNIST':
@@ -47,6 +60,9 @@ print('Beginning training...')
 for epoch in range(confs['NUMEPOCHS']):
     scheduler1.step()
     scheduler2.step()
+    if confs['loss'] == 'wae-gan':
+        scheduler1_disc.step()
+        scheduler2_disc.step()
     train_loss = train(model,trainloader,optimizer,confs,epoch)
     train_losses.append(train_loss)
     if testloader != None:
