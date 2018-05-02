@@ -90,10 +90,17 @@ def test(model,dloader,epoch,confs,add_noise=True):
             data += noise
         data = Variable(data)
 
-        recon_x, mu, logvar = model.forward(data)
+        
         if confs['loss'] == 'vae':
+            recon_x, mu, logvar = model.forward(data)
             loss, bce_loss, KLD_loss = model.loss(recon_x,Variable(orig_data),mu,logvar)
         elif confs['loss'] == 'wae-gan':
+            mu, logvar = model.encode(data)
+            z_tilde = model.reparameterize(mu,logvar)
+            z = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
+
+            recon_x = model.decode(z_tilde)
+
             loss, d_loss = model.loss(recon_x,data,z,z_tilde)
         test_loss += loss.data[0]
 
