@@ -118,14 +118,14 @@ class WAE_MMD(nn.Module):
         return recon_x, mu, logvar
 
     def kernel(self,z_0,z_1):
-        C = 2.0*self.confs['latentd']*(self.confs['sigma_z']**2)
+        C = 2.0*self.confs['latentd']*(self.confs['sig_z']**2)
         return C/(C+torch.mean(z_0-z_1)**2)
 
     def loss(self,recon_x,x,z,z_tilde):
 
         mse_loss = torch.sum(self.mse(recon_x,x))
         
-        qz_norm = torch.sum(z_tilde**2,keepdim=True,dim=1)
+        qz_norm = torch.sum(z_tilde**2,dim=1,keepdim=True)
         pz_norm = torch.sum(z**2,dim=1,keepdim=True)
         qzqz_dot = torch.matmul(z_tilde,z_tilde.t())
         pzpz_dot = torch.matmul(z,z.t())
@@ -135,7 +135,7 @@ class WAE_MMD(nn.Module):
         pz_dist = pz_norm + pz_norm.transpose(1,0) - 2.0*pzpz_dot
         qzpz_dist = pz_norm + qz_norm.transpose(1,0) -2.0 *qzpz_dot
 
-        C_init = 2.0*self.confs['latentd']*(self.confs['sigma_z']**2)
+        C_init = 2.0*self.confs['latentd']*(self.confs['sig_z']**2)
 
         mmd_loss = 0
         for scale in [0.1,0.2,0.5,1.0,2.0,5.0,10.0]:
