@@ -125,8 +125,8 @@ class WAE_MMD(nn.Module):
 
         mse_loss = torch.sum(self.mse(recon_x,x))
         
-        qz_norm = torch.sum(z_tilde**2,dim=1)
-        pz_norm = torch.sum(z**2,dim=1)
+        qz_norm = torch.sum(z_tilde**2,keepdim=True,dim=1)
+        pz_norm = torch.sum(z**2,dim=1,keepdim=True)
         qzqz_dot = torch.matmul(z_tilde,z_tilde.t())
         pzpz_dot = torch.matmul(z,z.t())
         qzpz_dot = torch.matmul(z_tilde, z.t())

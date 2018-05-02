@@ -54,7 +54,7 @@ elif FLAGS.exp == 'mnist_waemmd':
     scheduler2 = MultiStepLR(optimizer, milestones= confs['milestones2'],gamma=0.2)
 
 elif FLAGS.exp == 'celeba_waemmd':
-    confs = config.conf_mnist_wae_mmd
+    confs = config.conf_celeba_wae_mmd
     model = WAE.WAE_MMD(confs)
     optimizer = torch.optim.Adam(model.myparameters,lr = confs['lr'], betas=(confs['B1'],confs['B2']))
     scheduler1 = MultiStepLR(optimizer, milestones= confs['milestones1'],gamma=0.5)
