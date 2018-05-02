@@ -58,7 +58,7 @@ if confs['CUDA']:
 
 if confs['pretrain']:
     optimizer_p = torch.optim.Adam(model.encoder.parameters(),lr = confs['lr'], betas=(confs['B1_disc'],confs['B2_disc']))
-    pretrain(model,train_loader,optimizer_p)
+    pretrain(model,trainloader,optimizer_p,confs)
 
 train_losses = []
 test_losses = []

@@ -17,6 +17,8 @@ from torchvision.utils import save_image
 def train(model, dloader,optimizer,confs, epoch,add_noise=True):
     if confs['loss'] == 'wae-gan':
         optimizer, optimizer_disc = optimizer
+    model.encoder.train()
+    model.decoder.train()
     model.train()
     train_loss = 0
     for batch_index, (data,_) in enumerate(dloader):  
@@ -57,20 +59,31 @@ def train(model, dloader,optimizer,confs, epoch,add_noise=True):
             recon_x = model.decode(z_tilde)
 
             loss, d_loss = model.loss(recon_x,data,z,z_tilde)
-            d_loss.backward()
+            d_loss.backward(retain_graph=True)
             optimizer_disc.step()
 
             loss.backward()
             optimizer.step()
             train_loss += loss.data[0]
         elif confs['loss'] == 'wae-mmd':
-            pass
+            optimizer.zero_grad()
+            mu, logvar = model.encode(data)
+            z_tilde = model.reparameterize(mu,logvar)
+            z = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
 
+            recon_x = model.decode(z_tilde)
+            loss = model.loss(recon_x,data,z,z_tilde)
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.data[0]
 
+    
     train_loss = train_loss /(config.batch_size*len(dloader.dataset))
     return train_loss
 
 def test(model,dloader,epoch,confs,add_noise=True):
+    model.encoder.eval()
+    model.decoder.eval()
     model.eval()
     test_loss = 0
 
@@ -108,7 +121,7 @@ def test(model,dloader,epoch,confs,add_noise=True):
         save_images(recon_x,orig_data,epoch,confs)
     return test_loss/(config.batch_size*len(dloader.dataset))
 
-def pretrain(model,train_loader,optimizer):
+def pretrain(model,train_loader,optimizer,confs):
     for batch_index, (data, _) in train_loader:
 
         if confs['CUDA']:
@@ -119,7 +132,7 @@ def pretrain(model,train_loader,optimizer):
         elif confs['dataset'] == 'CelebA':
             data = data.view(-1,3,64,64)
         orig_data = data.clone()
-        if add_noise:
+        if confs['noise']:
             noise = torch.FloatTensor(torch.zeros(data.shape)).normal_()
             noise = truncate_noise(noise)
             if confs['CUDA']:
