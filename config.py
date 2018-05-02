@@ -30,7 +30,7 @@ conf_celeba_vae['loss'] = 'vae'
 
 #MNIST-WAE-GAN
 conf_mnist_wae_gan = {}
-conf_mnist_wae_gan['type'] = 'WAE'
+conf_mnist_wae_gan['type'] = 'WAEGAN'
 conf_mnist_wae_gan['latentd'] = 8
 conf_mnist_wae_gan['dataset'] = 'MNIST'
 conf_mnist_wae_gan['CUDA'] = True
@@ -51,7 +51,7 @@ conf_mnist_wae_gan['sig_z'] = 1
 
 #Celeba-WAE-GAN
 conf_celeba_wae_gan = {}
-conf_celeba_wae_gan['type'] = 'WAE'
+conf_celeba_wae_gan['type'] = 'WAEGAN'
 conf_celeba_wae_gan['latentd'] = 64
 conf_celeba_wae_gan['dataset'] = 'celeba'
 conf_celeba_wae_gan['CUDA'] = True
