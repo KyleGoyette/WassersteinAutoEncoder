@@ -11,9 +11,11 @@ class WAE_GAN(nn.Module):
         if confs['dataset'] == 'MNIST':
             self.encoder = Encoder_MNIST()
             self.decoder = Decoder_MNIST()
+            self.discriminator = Discriminator_MNIST()
         elif confs['dataset'] == 'celeba':
             self.encoder = Encoder_Celeba()
             self.decoder = Decoder_Celeba()
+            self.discriminator = Discriminator_Celeba()
         self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters()))
         if self.confs['dataset'] == 'MNIST':
             if self.confs['CUDA']:
@@ -77,6 +79,33 @@ class Discriminator_MNIST(nn.Module):
 
         self.layer1 = nn.Sequential(
             nn.Linear(in_features=8,out_features=512),
+            nn.ReLU()
+        )
+        self.layer2 = nn.Sequential(
+            nn.Linear(in_features=512,out_features=512),
+            nn.ReLU()
+        )
+
+        self.layer3 = nn.Sequential(
+            nn.Linear(in_features=512, out_features=512),
+            nn.ReLU()
+        )
+
+        self.layer4 = nn.Sequential(
+            nn.Linear(in_features=512, out_features=512),
+            nn.ReLU(),
+            nn.Linear(in_features=512,out_features=1)
+        )
+
+    def forward(self,x):
+        return F.sigmoid(self.layer4(self.layer3(self.layer2(self.layer1(x)))))
+
+class Discriminator_Celeba(nn.Module):
+    def __init__(self):
+        super(Discriminator_MNIST,self).__init__()
+
+        self.layer1 = nn.Sequential(
+            nn.Linear(in_features=64,out_features=512),
             nn.ReLU()
         )
         self.layer2 = nn.Sequential(
