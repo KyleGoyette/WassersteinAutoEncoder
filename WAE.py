@@ -11,11 +11,11 @@ class WAE_GAN(nn.Module):
         if confs['dataset'] == 'MNIST':
             self.encoder = Encoder_MNIST()
             self.decoder = Decoder_MNIST()
-            self.discriminator = Discriminator_MNIST()
+            self.discriminator = Discriminator(confs)
         elif confs['dataset'] == 'celeba':
             self.encoder = Encoder_Celeba()
             self.decoder = Decoder_Celeba()
-            self.discriminator = Discriminator_Celeba()
+            self.discriminator = Discriminator(confs)
         self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters()))
         if self.confs['dataset'] == 'MNIST':
             if self.confs['CUDA']:
@@ -73,12 +73,13 @@ class WAE_GAN(nn.Module):
     def pret_loss(self,mu,logvar):
         pass
 
-class Discriminator_MNIST(nn.Module):
-    def __init__(self):
+class Discriminator(nn.Module):
+    def __init__(self,confs):
+        self.confs = confs
         super(Discriminator_MNIST,self).__init__()
 
         self.layer1 = nn.Sequential(
-            nn.Linear(in_features=8,out_features=512),
+            nn.Linear(in_features=confs['latentd'],out_features=512),
             nn.ReLU()
         )
         self.layer2 = nn.Sequential(
@@ -98,35 +99,12 @@ class Discriminator_MNIST(nn.Module):
         )
 
     def forward(self,x):
-        return F.sigmoid(self.layer4(self.layer3(self.layer2(self.layer1(x)))))
+        if self.confs['n_trick']:
+            adder = torch.sum(torch.square(x))/2/(self.confs['sig_z']**2) - 0.5*torch.log(2*torch.pi) - 0.5 * self.confs['latentd']*torch.log(self.confs['sig_z']**2)
+            return F.sigmoid(self.layer4(self.layer3(self.layer2(self.layer1(x))))) + adder
 
-class Discriminator_Celeba(nn.Module):
-    def __init__(self):
-        super(Discriminator_MNIST,self).__init__()
-
-        self.layer1 = nn.Sequential(
-            nn.Linear(in_features=64,out_features=512),
-            nn.ReLU()
-        )
-        self.layer2 = nn.Sequential(
-            nn.Linear(in_features=512,out_features=512),
-            nn.ReLU()
-        )
-
-        self.layer3 = nn.Sequential(
-            nn.Linear(in_features=512, out_features=512),
-            nn.ReLU()
-        )
-
-        self.layer4 = nn.Sequential(
-            nn.Linear(in_features=512, out_features=512),
-            nn.ReLU(),
-            nn.Linear(in_features=512,out_features=1)
-        )
-
-    def forward(self,x):
-        return F.sigmoid(self.layer4(self.layer3(self.layer2(self.layer1(x)))))
-
+        else:
+            return F.sigmoid(self.layer4(self.layer3(self.layer2(self.layer1(x)))))
 
 class Encoder_MNIST(nn.Module):
     def __init__(self):
