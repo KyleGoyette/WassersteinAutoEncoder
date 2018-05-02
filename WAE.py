@@ -17,16 +17,11 @@ class WAE_GAN(nn.Module):
             self.decoder = Decoder_Celeba()
             self.discriminator = Discriminator(confs)
         self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters()))
-        if self.confs['dataset'] == 'MNIST':
-            if self.confs['CUDA']:
-                self.bce = nn.BCELoss(size_average=False).cuda()
-            else:
-                self.bce = nn.BCELoss(size_average=False)
-        elif self.confs['dataset'] == 'celeba':
-            if self.confs['CUDA']:
-                self.mse = nn.MSELoss(size_average=False).cuda()
-            else:
-                self.mse = nn.MSELoss(size_average=False)
+
+        if self.confs['CUDA']:
+            self.mse = nn.MSELoss(size_average=False).cuda()
+        else:
+            self.mse = nn.MSELoss(size_average=False)
 
         self.discrim_loss = nn.BCEWithLogitsLoss()
             
@@ -56,11 +51,11 @@ class WAE_GAN(nn.Module):
 
         mse_loss = torch.sum(self.mse(recon_x,x))
         mse_loss = mse_loss/config.batch_size
-
+        z_tilde_discrim = z_tlide.detach()
         p_preds = self.discriminator.forward(z)
-        q_preds = self.discriminator.forward(z_tilde)
-
-        penalty = self.discrim_loss(logits_q,torch.ones_like(logits_q))
+        q_preds = self.discriminator.forward(z_tilde_discrim)
+        q_preds.detached = q_preds.detach()
+        penalty = self.discrim_loss(q_preds_detach,torch.ones_like(q_preds))
         
         loss_q = self.discrim_loss(q_preds,torch.zeros_like(q_preds))
         loss_p = self.discrim_loss(p_preds,torch.ones_like(p_preds))
@@ -75,9 +70,8 @@ class WAE_GAN(nn.Module):
 
 class Discriminator(nn.Module):
     def __init__(self,confs):
+        super(Discriminator,self).__init__()
         self.confs = confs
-        super(Discriminator_MNIST,self).__init__()
-
         self.layer1 = nn.Sequential(
             nn.Linear(in_features=confs['latentd'],out_features=512),
             nn.ReLU()
