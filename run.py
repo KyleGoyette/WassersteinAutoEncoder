@@ -47,7 +47,7 @@ elif FLAGS.exp == 'celeba_waegan':
     optimizer = (optimizer_wae, optimizer_disc)
 
 if confs['dataset']== 'MNIST':
-    trainloader, testloader = load_data_mnist()
+    trainloader, testloader = load_data_mnist(test=True)
 elif confs['dataset'] == 'celeba':
     trainloader, testloader = load_data_celeba()
 

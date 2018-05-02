@@ -91,7 +91,10 @@ def test(model,dloader,epoch,confs,add_noise=True):
         data = Variable(data)
 
         recon_x, mu, logvar = model.forward(data)
-        loss, bce_loss, KLD_loss = model.loss(recon_x,Variable(orig_data),mu,logvar)
+        if confs['loss'] == 'vae':
+            loss, bce_loss, KLD_loss = model.loss(recon_x,Variable(orig_data),mu,logvar)
+        elif confs['loss'] == 'wae-gan':
+            loss, d_loss = model.loss(recon_x,data,z,z_tilde)
         test_loss += loss.data[0]
 
     if (epoch%config.REPORTFREQ == 0) or epoch == confs['NUMEPOCHS']:

@@ -51,11 +51,11 @@ class WAE_GAN(nn.Module):
 
         mse_loss = torch.sum(self.mse(recon_x,x))
         mse_loss = mse_loss/config.batch_size
-        z_tilde_discrim = z_tlide.detach()
+        z_tilde_discrim = z_tilde.detach()
         p_preds = self.discriminator.forward(z)
         q_preds = self.discriminator.forward(z_tilde_discrim)
-        q_preds.detached = q_preds.detach()
-        penalty = self.discrim_loss(q_preds_detach,torch.ones_like(q_preds))
+        q_preds_detached = q_preds.detach()
+        penalty = self.discrim_loss(q_preds_detached,torch.ones_like(q_preds))
         
         loss_q = self.discrim_loss(q_preds,torch.zeros_like(q_preds))
         loss_p = self.discrim_loss(p_preds,torch.ones_like(p_preds))
