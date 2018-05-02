@@ -57,7 +57,7 @@ def train(model, dloader,optimizer,confs, epoch,add_noise=True):
             recon_x = model.decode(z_tilde)
 
             loss, d_loss = model.loss(recon_x,data,z,z_tilde)
-            d_loss.backward(retain_graph=True)
+            d_loss.backward()
             optimizer_disc.step()
 
             loss.backward()

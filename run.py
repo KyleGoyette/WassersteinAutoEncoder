@@ -28,7 +28,7 @@ elif FLAGS.exp == 'mnist_waegan':
     confs = config.conf_mnist_wae_gan
     model = WAE.WAE_GAN(confs)
     optimizer_wae = torch.optim.Adam(model.myparameters,lr = confs['lr'], betas=(confs['B1'],confs['B2']))
-    optimizer_disc = torch.optim.Adam(model.myparameters,lr = confs['lr_disc'], betas=(confs['B1_disc'],confs['B2_disc']))
+    optimizer_disc = torch.optim.Adam(model.discriminator.parameters(),lr = confs['lr_disc'], betas=(confs['B1_disc'],confs['B2_disc']))
     scheduler1 = MultiStepLR(optimizer_wae, milestones= confs['milestones1'],gamma=0.5)
     scheduler2 = MultiStepLR(optimizer_wae, milestones= confs['milestones2'],gamma=0.2)
     scheduler1_disc = MultiStepLR(optimizer_disc, milestones= confs['milestones1'],gamma=0.5)
@@ -72,7 +72,7 @@ for epoch in range(confs['NUMEPOCHS']):
     else:
         print('Epoch: {} Train Loss: {}'.format(epoch,train_loss))
     if epoch % config.SAVEFREQ == 0:
-        save_model(confs['dataset']+'_'+confs['type'],model,epoch)
+        save_model(confs['dataset']+'_'+confs['type'],model,epoch,confs)
 save_model(confs['dataset'],model,epoch,confs)
 np.save('./losses/{}_train'.format(FLAGS.exp),train_losses)
 np.save('./losses/{}_test'.format(FLAGS.exp),test_losses)
