@@ -13,8 +13,10 @@ from PIL import Image
 import matplotlib.pyplot as plt
 
 from torchvision.utils import save_image
-confs = config.conf_celeba_vae
-def train(model, dloader,optimizer, epoch,add_noise=True):
+
+def train(model, dloader,optimizer,confs, epoch,add_noise=True):
+    if confs['loss'] == 'wae-gan':
+        optimizer, optimizer_disc = optimizer
     model.train()
     train_loss = 0
     for batch_index, (data,_) in enumerate(dloader):  
@@ -34,13 +36,36 @@ def train(model, dloader,optimizer, epoch,add_noise=True):
 
             data += noise
         data = Variable(data)
+        
+        if confs['loss'] == 'vae':
+            optimizer.zero_grad()
+            recon_x, mu, logvar = model.forward(data)
+            tot_loss,recon_loss, KLD_loss = model.loss(recon_x,Variable(orig_data),mu,logvar)
 
-        optimizer.zero_grad()
-        recon_x, mu, logvar = model.forward(data)
-        tot_loss,recon_loss, KLD_loss = model.loss(recon_x,Variable(orig_data),mu,logvar)
-        tot_loss.backward()
-        optimizer.step()
-        train_loss += tot_loss.data[0]
+        
+            tot_loss.backward()
+            optimizer.step()
+            train_loss += tot_loss.data[0]
+        
+        elif confs['loss'] == 'wae-gan':
+            optimizer_disc.zero_grad()
+            optimizer.zero_grad()
+            mu, logvar = model.encode(data)
+            z_tilde = model.reparameterize(mu,logvar)
+            z = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
+
+            recon_x = model.decode(z_tilde)
+
+            loss, d_loss = model.loss(recon_x,data,z,z_tilde)
+            d_loss.backward()
+            optimizer_disc.step()
+
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.data[0]
+        elif confs['loss'] == 'wae-mmd':
+            pass
+
 
     train_loss = train_loss /(config.batch_size*len(dloader.dataset))
     return train_loss
