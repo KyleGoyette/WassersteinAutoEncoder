@@ -14,7 +14,6 @@ FLAGS = parser.parse_args()
 
 if FLAGS.exp == "mnist_vae":
     confs = config.conf_mnist_vae
-
     model = VAE.VAE(confs)
     optimizer = torch.optim.Adam(model.myparameters,lr = confs['lr'], betas=(confs['B1'],confs['B2']))
     scheduler1 = MultiStepLR(optimizer, milestones= confs['milestones1'],gamma=0.5)
@@ -27,7 +26,7 @@ elif FLAGS.exp == 'celeba_vae':
     scheduler2 = MultiStepLR(optimizer, milestones= confs['milestones2'],gamma=0.2)
 elif Flags.exp == 'mnist_waegan':
     confs = config.conf_mnist_wae_gan
-    model = WAE.WAE(confs)
+    model = WAE.WAE_GAN(confs)
     optimizer_wae = torch.optim.Adam(model.myparameters,lr = confs['lr'], betas=(confs['B1'],confs['B2']))
     optimizer_disc = torch.optim.Adam(model.myparameters,lr = confs['lr_disc'], betas=(confs['B1_disc'],confs['B2_disc']))
     scheduler1 = MultiStepLR(optimizer, milestones= confs['milestones1'],gamma=0.5)
