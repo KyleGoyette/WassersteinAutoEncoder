@@ -68,8 +68,39 @@ conf_celeba_wae_gan['noise'] = False
 conf_celeba_wae_gan['loss'] = 'wae-gan'
 conf_celeba_wae_gan['lambda'] = 1
 conf_celeba_wae_gan['n_trick'] = True
-conf_celeba_wae_gan['sig_z'] = 2
+conf_celeba_wae_gan['sig_z'] = 1
 
+#MNIST-WAE-MMD
+conf_mnist_wae_mmd = {}
+conf_mnist_wae_mmd['type'] = 'WAEMMD'
+conf_mnist_wae_mmd['latentd'] = 8
+conf_mnist_wae_mmd['dataset'] = 'MNIST'
+conf_mnist_wae_mmd['CUDA'] = True
+conf_mnist_wae_mmd['lr'] = 10e-3
+conf_mnist_wae_mmd['B1'] = 0.5
+conf_mnist_wae_mmd['B2'] = 0.999
+conf_mnist_wae_mmd['milestones1'] = [30]
+conf_mnist_wae_mmd['milestones2'] = [50]
+conf_mnist_wae_mmd['NUMEPOCHS'] = 100
+conf_mnist_wae_mmd['noise'] = True
+conf_mnist_wae_mmd['loss'] = 'wae-mmd'
+conf_mnist_wae_gan['sig_z'] = 1
+
+#MNIST-WAE-MMD
+conf_celeba_wae_mmd = {}
+conf_celeba_wae_mmd['type'] = 'WAEMMD'
+conf_celeba_wae_mmd['latentd'] = 8
+conf_celeba_wae_mmd['dataset'] = 'celeba'
+conf_celeba_wae_mmd['CUDA'] = True
+conf_celeba_wae_mmd['lr'] = 10e-3
+conf_celeba_wae_mmd['B1'] = 0.5
+conf_celeba_wae_mmd['B2'] = 0.999
+conf_celeba_wae_mmd['milestones1'] = [30]
+conf_celeba_wae_mmd['milestones2'] = [50]
+conf_celeba_wae_mmd['NUMEPOCHS'] = 55
+conf_celeba_wae_mmd['noise'] = False
+conf_celeba_wae_mmd['loss'] = 'wae-mmd'
+conf_celeba_wae_gan['sig_z'] = 1
 
 batch_size = 100
 

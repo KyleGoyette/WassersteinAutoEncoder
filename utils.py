@@ -115,6 +115,14 @@ def test(model,dloader,epoch,confs,add_noise=True):
             recon_x = model.decode(z_tilde)
 
             loss, d_loss = model.loss(recon_x,data,z,z_tilde)
+        elif confs['loss'] == 'wae-mmd':
+            mu, logvar = model.encode(data)
+            z_tilde = model.reparameterize(mu,logvar)
+            z = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
+            recon_x = model.decode(z_tilde)
+
+            loss = model.loss(recon_x,data,z,z_tilde)
+        
         test_loss += loss.data[0]
 
     if (epoch%config.REPORTFREQ == 0) or epoch == confs['NUMEPOCHS']:

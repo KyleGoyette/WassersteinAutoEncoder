@@ -46,6 +46,22 @@ elif FLAGS.exp == 'celeba_waegan':
     scheduler2_disc = MultiStepLR(optimizer_disc, milestones= confs['milestones2'],gamma=0.2)
     optimizer = (optimizer_wae, optimizer_disc)
 
+elif FLAGS.exp == 'mnist_waemmd':
+    confs = config.conf_mnist_wae_mmd
+    model = WAE.WAE_MMD(confs)
+    optimizer = torch.optim.Adam(model.myparameters,lr = confs['lr'], betas=(confs['B1'],confs['B2']))
+    scheduler1 = MultiStepLR(optimizer, milestones= confs['milestones1'],gamma=0.5)
+    scheduler2 = MultiStepLR(optimizer, milestones= confs['milestones2'],gamma=0.2)
+
+elif FLAGS.exp == 'celeba_waemmd':
+    confs = config.conf_mnist_wae_mmd
+    model = WAE.WAE_MMD(confs)
+    optimizer = torch.optim.Adam(model.myparameters,lr = confs['lr'], betas=(confs['B1'],confs['B2']))
+    scheduler1 = MultiStepLR(optimizer, milestones= confs['milestones1'],gamma=0.5)
+    scheduler2 = MultiStepLR(optimizer, milestones= confs['milestones2'],gamma=0.2)
+
+
+
 if confs['dataset']== 'MNIST':
     trainloader, testloader = load_data_mnist(test=True)
 elif confs['dataset'] == 'celeba':
@@ -56,9 +72,9 @@ if confs['CUDA']:
 
 
 
-if confs['pretrain']:
-    optimizer_p = torch.optim.Adam(model.encoder.parameters(),lr = confs['lr'], betas=(confs['B1_disc'],confs['B2_disc']))
-    pretrain(model,trainloader,optimizer_p,confs)
+#if confs['pretrain']:
+#    optimizer_p = torch.optim.Adam(model.encoder.parameters(),lr = confs['lr'], betas=(confs['B1_disc'],confs['B2_disc']))
+#    pretrain(model,trainloader,optimizer_p,confs)
 
 train_losses = []
 test_losses = []
