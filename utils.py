@@ -199,7 +199,8 @@ def truncate_noise(noise):
 
 def save_images(recon_x,x,epoch,confs):
     save_path = './images/{}/{}/'.format(confs['dataset'],confs['type'])
-    if not os.path.isdir(save_path)
+    if not os.path.isdir(save_path):
+        os.mkdir(save_path)
     save_image(x, '{}/epoch_{}_data.jpg'.format(save_path,epoch), nrow=6,padding=2)
     save_image(recon_x.data,'./images/epoch_{}_recon.jpg'.format(epoch), nrow=6,padding=2)
 
