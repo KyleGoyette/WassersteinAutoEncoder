@@ -233,7 +233,7 @@ class Decoder_MNIST(nn.Module):
             nn.ReLU()
         )
 
-        self.layer4 = nn.ConvTranspose2d(in_channels=256,out_channels=1, stride=1, padding=1,kernel_size=4,output_padding=1)
+        self.layer4 = nn.ConvTranspose2d(in_channels=256,out_channels=1, stride=1, padding=1,kernel_size=3)
         
 
     def forward(self,x):
