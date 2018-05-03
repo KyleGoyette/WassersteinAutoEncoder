@@ -164,6 +164,8 @@ def load_data_mnist(batch_size=config.batch_size, test=False):
     else:
         
         train_data = pickle.load(open(train_path,'rb'), encoding='latin1')
+        norms = np.linalg.norm(train_data['data'],axis=1)
+        train_data['data'] = train_data['data']/norms[:,None]
         #maxvals = np.max(train_data['data'])
         #minvals = np.min(train_data['data'])
         #train_data['data'] = (train_data['data'] - minvals)/(maxvals-minvals)*2 -1
