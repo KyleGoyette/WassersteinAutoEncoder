@@ -132,7 +132,7 @@ class WAE_MMD(nn.Module):
 
     def loss(self,recon_x,x,z,z_tilde):
 
-        mse_loss = torch.sum(self.mse(recon_x,x))
+        mse_loss = self.mse(recon_x,x)
         
         qz_norm = torch.sum(z_tilde**2,dim=1,keepdim=True)
         pz_norm = torch.sum(z**2,dim=1,keepdim=True)
@@ -150,7 +150,7 @@ class WAE_MMD(nn.Module):
         for scale in [0.1,0.2,0.5,1.0,2.0,5.0,10.0]:
             C = C_init * scale
             res1 = C/ (C+ qz_dist) + C/(C+pz_dist)
-            res1 = torch.matmul(res1, torch.autograd.Variable(torch.eye(config.batch_size).cuda()))
+            res1 = torch.matmul(res1, torch.autograd.Variable(1.0-torch.eye(config.batch_size).cuda()))
             res1 = torch.sum(res1)/(config.batch_size*(config.batch_size-1))
             res2 = C/(C+qzpz_dist)
             res2 = 2* torch.sum(res2)/(config.batch_size**2)
@@ -158,10 +158,6 @@ class WAE_MMD(nn.Module):
             mmd_loss += res1 - res2
 
         return mse_loss + self.confs['lambda']*mmd_loss
-
-            
-        return enc_dec_loss, d_loss
-
 
 class Discriminator(nn.Module):
     def __init__(self,confs):
