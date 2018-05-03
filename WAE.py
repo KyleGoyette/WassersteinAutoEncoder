@@ -105,8 +105,11 @@ class WAE_MMD(nn.Module):
         return self.decoder.forward(z)
 
     def reparameterize(self,mu,logvar,n=config.batch_size):
-        std = torch.exp(0.5*logvar)
+        
+
         if self.training:
+            std = torch.exp(0.5*logvar)
+            std = torch.clamp(std,-50,50)
             if self.confs['CUDA']:
                 eps = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
             else:
@@ -234,7 +237,7 @@ class Decoder_MNIST(nn.Module):
             nn.ReLU()
         )
 
-        self.layer4 = nn.ConvTranspose2d(in_channels=256,out_channels=1, stride=1, padding=1,kernel_size=3)
+        self.layer4 = nn.ConvTranspose2d(in_channels=256,out_channels=1, stride=1, padding=1,kernel_size=4,output_padding=1)
         
 
     def forward(self,x):
