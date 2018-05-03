@@ -78,7 +78,7 @@ def train(model, dloader,optimizer,confs, epoch,add_noise=True):
             train_loss += loss.data[0]
 
     
-    train_loss = train_loss /(config.batch_size*len(dloader.dataset))
+    
     return train_loss
 
 def test(model,dloader,epoch,confs,add_noise=True):
@@ -127,7 +127,7 @@ def test(model,dloader,epoch,confs,add_noise=True):
 
     if (epoch%config.REPORTFREQ == 0) or epoch == confs['NUMEPOCHS']:
         save_images(recon_x,orig_data,epoch,confs)
-    return test_loss/(config.batch_size*len(dloader.dataset))
+    return test_loss
 
 def pretrain(model,train_loader,optimizer,confs):
     for batch_index, (data, _) in train_loader:

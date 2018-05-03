@@ -19,9 +19,9 @@ class WAE_GAN(nn.Module):
         self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters()))
 
         if self.confs['CUDA']:
-            self.mse = nn.MSELoss(size_average=False).cuda()
+            self.mse = nn.MSELoss().cuda()
         else:
-            self.mse = nn.MSELoss(size_average=False)
+            self.mse = nn.MSELoss()
 
         self.discrim_loss = nn.BCEWithLogitsLoss()
             
