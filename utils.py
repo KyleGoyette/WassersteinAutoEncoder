@@ -214,7 +214,7 @@ def load_data_celeba(batch_size=config.batch_size,max_files = 0,test_split=0.2):
 def create_celeba_datapaths(split=0.9):
     root = '/data/'
     data_path = root + 'lisa/data/celeba/'
-    save_root = '/data/milatmp1/goyettky/IFT6135/Project/WAE/data/'
+    save_root = './data/'
     traindir = save_root+'train/'
     testdir = save_root+'test/'
 
