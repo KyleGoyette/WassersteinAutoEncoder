@@ -165,7 +165,7 @@ def load_data_mnist(batch_size=config.batch_size, test=False):
         
         train_data = pickle.load(open(train_path,'rb'), encoding='latin1')
         mins = np.min(train_data['data'],axis=1)
-        maxs = np.maxs(train_data['data'],axis=1)
+        maxs = np.max(train_data['data'],axis=1)
         train_data['data'] = (train_data['data']-mins[:,None])/(maxs[:,None]- mins[:,None])
         train_dataset = TensorDataset(torch.Tensor(train_data['data']), torch.IntTensor(train_data['labels']))
         trainloader = DataLoader(train_dataset,batch_size=batch_size,shuffle=True)
@@ -173,7 +173,7 @@ def load_data_mnist(batch_size=config.batch_size, test=False):
             test_path = '/data/lisa/data/mnist/mnist-python/test.pkl'
             test_data = pickle.load(open(test_path,'rb'), encoding='latin1')
             mins = np.min(test_data['data'],axis=1)
-            maxs = np.maxs(test_data['data'],axis=1)
+            maxs = np.max(test_data['data'],axis=1)
             test_data['data'] = (test_data['data']-mins[:,None])/(maxs[:,None]- mins[:,None])
             test_dataset = TensorDataset(torch.Tensor(test_data['data']), torch.IntTensor(test_data['labels']))
             testloader = DataLoader(test_dataset,batch_size=batch_size,shuffle=True)
