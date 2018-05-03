@@ -63,7 +63,7 @@ class WAE_GAN(nn.Module):
         loss_p = self.discrim_loss(p_preds,torch.ones_like(p_preds))
 
         d_loss = self.confs['lambda']*(loss_q + loss_p)/config.batch_size
-        enc_dec_loss = (mse_loss + self.confs['lambda']*penalty)/config.batch_size
+        enc_dec_loss = (mse_loss + self.confs['lambda']*penalty)
         return enc_dec_loss, d_loss
             
 
