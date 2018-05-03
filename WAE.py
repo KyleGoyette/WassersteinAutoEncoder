@@ -131,33 +131,49 @@ class WAE_MMD(nn.Module):
         return C/(C+torch.mean(z_0-z_1)**2)
 
     def loss(self,recon_x,x,z,z_tilde):
-
+        #print(torch.max(z_tilde).data[0])
         mse_loss = self.mse(recon_x,x)
-        
-        qz_norm = torch.sum(z_tilde**2,dim=1,keepdim=True)
-        pz_norm = torch.sum(z**2,dim=1,keepdim=True)
-        qzqz_dot = torch.matmul(z_tilde,z_tilde.t())
-        pzpz_dot = torch.matmul(z,z.t())
-        qzpz_dot = torch.matmul(z_tilde, z.t())
-
-        qz_dist = qz_norm + qz_norm.transpose(1,0) - 2.0 * qzqz_dot
-        pz_dist = pz_norm + pz_norm.transpose(1,0) - 2.0*pzpz_dot
-        qzpz_dist = qz_norm + pz_norm.transpose(1,0) -2.0 *qzpz_dot
 
         C_init = 2.0*self.confs['latentd']*(self.confs['sig_z']**2)
+        #print(z_tilde_tile1.shape)
 
-        mmd_loss = 0
-        for scale in [0.1,0.2,0.5,1.0,2.0,5.0,10.0]:
-            C = C_init * scale
-            res1 = C/ (C+ qz_dist) + C/(C+pz_dist)
-            res1 = torch.matmul(res1, torch.autograd.Variable(1.0-torch.eye(config.batch_size).cuda()))
-            res1 = torch.sum(res1)/(config.batch_size*(config.batch_size-1))
-            res2 = C/(C+qzpz_dist)
-            res2 = 2* torch.sum(res2)/(config.batch_size**2)
+        k_pp = C_init/(C_init + torch.sum((z.unsqueeze(0)-z.unsqueeze(1))**2,dim=2))
+        #print(k_pp.shape)
+        k_qq = C_init/(C_init + torch.sum((z_tilde.unsqueeze(0)-z_tilde.unsqueeze(1))**2,dim=2))
+        k_pq = C_init/(C_init + torch.sum((z_tilde.unsqueeze(0)-z.unsqueeze(1))**2,dim=2))
 
-            mmd_loss += res1 - res2
-
+        mmd_loss = (torch.sum(k_pp) - torch.sum(torch.diag(k_pp)) + torch.sum(k_qq) - torch.sum(torch.diag(k_qq)) - 2* (torch.sum(k_pq) - torch.sum(torch.diag(k_pq))))/(config.batch_size*(config.batch_size-1))   
+        #print(mmd_loss.data[0])
         return mse_loss + self.confs['lambda']*mmd_loss
+    
+    #def loss(self,recon_x,x,z,z_tilde):
+
+    #    mse_loss = self.mse(recon_x,x)
+        
+        #qz_norm = torch.sum(z_tilde**2,dim=1,keepdim=True)
+        #pz_norm = torch.sum(z**2,dim=1,keepdim=True)
+        #qzqz_dot = torch.matmul(z_tilde,z_tilde.t())
+        #pzpz_dot = torch.matmul(z,z.t())
+        #qzpz_dot = torch.matmul(z_tilde, z.t())
+
+        #qz_dist = qz_norm + qz_norm.transpose(1,0) - 2.0 * qzqz_dot
+        #pz_dist = pz_norm + pz_norm.transpose(1,0) - 2.0*pzpz_dot
+        #qzpz_dist = qz_norm + pz_norm.transpose(1,0) -2.0 *qzpz_dot
+
+        #C_init = 2.0*self.confs['latentd']*(self.confs['sig_z']**2)
+
+        #mmd_loss = 0
+        #for scale in [0.1,0.2,0.5,1.0,2.0,5.0,10.0]:
+        #    C = C_init * scale
+        #    res1 = C/ (C+ qz_dist) + C/(C+pz_dist)
+        #    res1 = torch.matmul(res1, torch.autograd.Variable(1.0-torch.eye(config.batch_size).cuda()))
+        #    res1 = torch.sum(res1)/(config.batch_size*(config.batch_size-1))
+        #    res2 = C/(C+qzpz_dist)
+        #    res2 = 2* torch.sum(res2)/(config.batch_size**2)
+
+        #    mmd_loss += res1 - res2
+
+        #return mse_loss + self.confs['lambda']*mmd_loss
 
 class Discriminator(nn.Module):
     def __init__(self,confs):
