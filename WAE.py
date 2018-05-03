@@ -32,13 +32,16 @@ class WAE_GAN(nn.Module):
         return self.decoder.forward(z)
 
     def reparameterize(self,mu,logvar,n=config.batch_size):
-        
-        if self.confs['CUDA']:
-            eps = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
-        else:
-            eps = torch.autograd.Variable(torch.FloatTensor(logvar.shape).normal_())
+        if self.training:
+            std = torch.exp(0.5*logvar)
+            if self.confs['CUDA']:
+                eps = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
+            else:
+                eps = torch.autograd.Variable(torch.FloatTensor(logvar.shape).normal_())
 
-        return eps.float().mul(logvar.mul(0.5).exp()).add_(mu)
+            return eps.float().mul(std).add_(mu)
+        else:
+            return mu
 
     def forward(self,x):
         mu, logvar = self.encode(x)
@@ -102,13 +105,16 @@ class WAE_MMD(nn.Module):
         return self.decoder.forward(z)
 
     def reparameterize(self,mu,logvar,n=config.batch_size):
-        
-        if self.confs['CUDA']:
-            eps = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
-        else:
-            eps = torch.autograd.Variable(torch.FloatTensor(logvar.shape).normal_())
+        std = torch.exp(0.5*logvar)
+        if self.training:
+            if self.confs['CUDA']:
+                eps = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
+            else:
+                eps = torch.autograd.Variable(torch.FloatTensor(logvar.shape).normal_())
 
-        return eps.float().mul(logvar.mul(0.5).exp()).add_(mu)
+            return eps.float().mul(std).add_(mu)
+        else:
+            return mu
 
     def forward(self,x):
         mu, logvar = self.encode(x)
@@ -133,7 +139,7 @@ class WAE_MMD(nn.Module):
 
         qz_dist = qz_norm + qz_norm.transpose(1,0) - 2.0 * qzqz_dot
         pz_dist = pz_norm + pz_norm.transpose(1,0) - 2.0*pzpz_dot
-        qzpz_dist = pz_norm + qz_norm.transpose(1,0) -2.0 *qzpz_dot
+        qzpz_dist = qz_norm + pz_norm.transpose(1,0) -2.0 *qzpz_dot
 
         C_init = 2.0*self.confs['latentd']*(self.confs['sig_z']**2)
 
