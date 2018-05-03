@@ -176,7 +176,7 @@ def load_data_mnist(batch_size=config.batch_size, test=False):
             maxs = np.max(test_data['data'],axis=1)
             test_data['data'] = (test_data['data']-mins[:,None])/(maxs[:,None]- mins[:,None])
             test_dataset = TensorDataset(torch.Tensor(test_data['data']), torch.IntTensor(test_data['labels']))
-            testloader = DataLoader(test_dataset,batch_size=batch_size,shuffle=True)
+            testloader = DataLoader(test_dataset,batch_size=batch_size,shuffle=False)
             return trainloader, testloader
 
         return trainloader, None
@@ -206,7 +206,7 @@ def load_data_celeba(batch_size=config.batch_size,max_files = 0,test_split=0.2):
             transforms.Normalize([0,0,0],[1,1,1])
         ])),
         batch_size=100,
-        shuffle=True
+        shuffle=False
     )
 
     return train_loader, test_loader
