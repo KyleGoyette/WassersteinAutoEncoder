@@ -164,8 +164,8 @@ def load_data_mnist(batch_size=config.batch_size, test=False):
     else:
         
         train_data = pickle.load(open(train_path,'rb'), encoding='latin1')
-        train_data_norm = np.linalg.norm(train_data['data'],axis=1)
-        train_data['data'] = train_data['data']/train_data_norm[:,None]
+        norms = np.linalg.norm(train_data['data'],axis=1)
+        train_data['data'] = train_data['data']/norms[:,None]
         train_dataset = TensorDataset(torch.Tensor(train_data['data']), torch.IntTensor(train_data['labels']))
         trainloader = DataLoader(train_dataset,batch_size=batch_size,shuffle=True)
         if (test):
