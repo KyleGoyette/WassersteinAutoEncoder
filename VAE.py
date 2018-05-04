@@ -17,14 +17,14 @@ class VAE(nn.Module):
         self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters()))
         if self.confs['dataset'] == 'MNIST':
             if self.confs['CUDA']:
-                self.bce = nn.BCELoss().cuda()
+                self.bce = nn.BCELoss(size_average=False).cuda()
             else:
-                self.bce = nn.BCELoss()
+                self.bce = nn.BCELoss(size_average=False)
         elif self.confs['dataset'] == 'celeba':
             if self.confs['CUDA']:
-                self.mse = nn.MSELoss().cuda()
+                self.mse = nn.MSELoss(size_average=False).cuda()
             else:
-                self.mse = nn.MSELoss()
+                self.mse = nn.MSELoss(size_average=False)
             
     def encode(self,x):
         return self.encoder.forward(x)
@@ -60,8 +60,7 @@ class VAE(nn.Module):
 
             return bce_loss + KLD, bce_loss, KLD
         elif self.confs['dataset'] == 'celeba':
-            mse_loss = torch.sum(self.mse(recon_x,x))
-            mes_loss = 0.05*(mse_loss)/config.batch_size
+            mse_loss = self.mse(recon_x,x)
             KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
             return mse_loss + KLD, mse_loss, KLD

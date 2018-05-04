@@ -79,7 +79,7 @@ def train(model, dloader,optimizer,confs, epoch,add_noise=True):
 
     
     
-    return train_loss
+    return train_loss/len(dloader.dataset)
 
 def test(model,dloader,epoch,confs,add_noise=True):
     model.encoder.eval()
@@ -127,7 +127,7 @@ def test(model,dloader,epoch,confs,add_noise=True):
 
     if (epoch%config.REPORTFREQ == 0) or epoch == confs['NUMEPOCHS']:
         save_images(recon_x,orig_data,epoch,confs)
-    return test_loss
+    return test_loss/len(dloader.dataset)
 
 def pretrain(model,train_loader,optimizer,confs):
     for batch_index, (data, _) in train_loader:
@@ -182,7 +182,7 @@ def load_data_mnist(batch_size=config.batch_size, test=False):
         return trainloader, None
 
 def load_data_celeba(batch_size=config.batch_size,max_files = 0,test_split=0.2):
-    save_root = '/data/milatmp1/goyettky/IFT6135/Project/WAE/data/'
+    save_root = './data/'
     traindir = save_root+'train/'
     testdir = save_root+'test/'
     train_loader = DataLoader(
@@ -265,3 +265,9 @@ def load_model(fname,model):
     state_dict = model.state_dict()
     state_dict.update(loaded_state_dict)
     model.load_state_dict(loaded_state_dict)
+
+def save_losses(data,confs,epoch):
+    save_path = './losses/{}/{}/'.format(confs['dataset'],confs['type'])
+    if not os.path.isdir(save_path):
+        os.makedirs(save_path)
+    np.save("{}/{}.",data)
