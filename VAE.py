@@ -17,14 +17,14 @@ class VAE(nn.Module):
         self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters()))
         if self.confs['dataset'] == 'MNIST':
             if self.confs['CUDA']:
-                self.bce = nn.BCELoss(size_average=False).cuda()
+                self.bce = nn.BCELoss().cuda()
             else:
-                self.bce = nn.BCELoss(size_average=False)
+                self.bce = nn.BCELoss()
         elif self.confs['dataset'] == 'celeba':
             if self.confs['CUDA']:
-                self.mse = nn.MSELoss(size_average=False).cuda()
+                self.mse = nn.MSELoss().cuda()
             else:
-                self.mse = nn.MSELoss(size_average=False)
+                self.mse = nn.MSELoss()
             
     def encode(self,x):
         return self.encoder.forward(x)
@@ -33,13 +33,13 @@ class VAE(nn.Module):
         return self.decoder.forward(z)
 
     def reparameterize(self,mu,logvar,n=config.batch_size):
-        
+        std = torch.exp(logvar*0.5)
         if self.confs['CUDA']:
             eps = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
         else:
             eps = torch.autograd.Variable(torch.FloatTensor(logvar.shape).normal_())
 
-        return eps.float().mul(logvar.mul(0.5).exp()).add_(mu)
+        return eps.float().mul(std).add_(mu)
 
     def forward(self,x):
         mu, logvar = self.encode(x)
@@ -75,16 +75,12 @@ class Encoder_MNIST(nn.Module):
     def __init__(self):
         super(Encoder_MNIST,self).__init__()
         self.layer1 = nn.Sequential(nn.Conv2d(in_channels=1, out_channels=128, kernel_size=4, stride=2,padding=1),
-                                    nn.BatchNorm2d(128),
                                     nn.ReLU())
         self.layer2 = nn.Sequential(nn.Conv2d(in_channels=128, out_channels=256, kernel_size=4, stride=2,padding=1),
-                                    nn.BatchNorm2d(256),
                                     nn.ReLU())
         self.layer3 = nn.Sequential(nn.Conv2d(in_channels=256, out_channels=512, kernel_size=4, stride=2,padding=2),
-                                    nn.BatchNorm2d(512),
                                     nn.ReLU())
         self.layer4 = nn.Sequential(nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=4, stride=2,padding=0),
-                                    nn.BatchNorm2d(1024),
                                     nn.ReLU())
         self.fc_layer_mean = nn.Linear(in_features=1024*1*1, out_features=8)
         self.fc_layer_logvar = nn.Linear(in_features=1024*1*1,out_features=8)
