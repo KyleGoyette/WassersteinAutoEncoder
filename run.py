@@ -112,6 +112,6 @@ for epoch in range(confs['NUMEPOCHS']):
         print('Epoch: {} Train Loss: {}'.format(epoch,train_loss))
     if epoch % config.SAVEFREQ == 0:
         save_model(confs['dataset']+'_'+confs['type'],model,epoch,confs)
-    save_losses(loss_data_train,confs,epoch,'train')
-    save_losses(loss_data_test,confs,epoch,'test')
+    save_losses(train_loss_data,confs,epoch,'train')
+    save_losses(test_loss_data,confs,epoch,'test')
 save_model(confs['dataset'],model,epoch,confs)
