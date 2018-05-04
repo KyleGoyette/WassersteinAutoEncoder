@@ -155,7 +155,7 @@ class WAE_MMD(nn.Module):
         qzqz_dot = torch.matmul(z_tilde,z_tilde.t())
         pzpz_dot = torch.matmul(z,z.t())
         qzpz_dot = torch.matmul(z_tilde, z.t())
-
+        n = z_tilde.shape[0]
         qz_dist = qz_norm + qz_norm.transpose(1,0) - 2.0 * qzqz_dot
         pz_dist = pz_norm + pz_norm.transpose(1,0) - 2.0*pzpz_dot
         qzpz_dist = qz_norm + pz_norm.transpose(1,0) -2.0 *qzpz_dot
@@ -165,10 +165,10 @@ class WAE_MMD(nn.Module):
         for scale in [0.1,0.2,0.5,1.0,2.0,5.0,10.0]:
             C = C_init * scale
             res1 = C/ (C+ qz_dist) + C/(C+pz_dist)
-            res1 = torch.matmul(res1, torch.autograd.Variable(1.0-torch.eye(config.batch_size).cuda()))
-            res1 = torch.sum(res1)/(config.batch_size*(config.batch_size-1))
+            res1 = torch.matmul(res1, torch.autograd.Variable(1.0-torch.eye(n).cuda()))
+            res1 = torch.sum(res1)/(n*(n-1))
             res2 = C/(C+qzpz_dist)
-            res2 = 2* torch.sum(res2)/(config.batch_size**2)
+            res2 = 2* torch.sum(res2)/(n**2)
 
             mmd_loss += res1 - res2
 
