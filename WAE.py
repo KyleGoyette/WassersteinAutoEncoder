@@ -23,7 +23,7 @@ class WAE_GAN(nn.Module):
         else:
             self.mse = nn.MSELoss()
 
-        self.discrim_loss = nn.BCEWithLogitsLoss()
+        self.discrim_loss = nn.CrossEntropyLoss().cuda()
             
     def encode(self,x):
         return self.encoder.forward(x)
@@ -200,8 +200,9 @@ class Discriminator(nn.Module):
 
     def forward(self,x):
         if self.confs['n_trick']:
-            adder = torch.sum(torch.square(x))/2/(self.confs['sig_z']**2) - 0.5*torch.log(2*torch.pi) - 0.5 * self.confs['latentd']*torch.log(self.confs['sig_z']**2)
-            return F.sigmoid(self.layer4(self.layer3(self.layer2(self.layer1(x))))) + adder
+            adder = torch.sum(x**2,dim=1)/2/(self.confs['sig_z']**2) - 0.5*torch.log(2*torch.FloatTensor([np.pi]).cuda()) - 0.5 * self.confs['latentd']*torch.log(torch.FloatTensor(self.confs['sig_z']**2).cuda())
+
+            return F.sigmoid(self.layer4(self.layer3(self.layer2(self.layer1(x))))+adder)
 
         else:
             return F.sigmoid(self.layer4(self.layer3(self.layer2(self.layer1(x)))))
