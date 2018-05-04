@@ -81,7 +81,7 @@ train_losses = []
 train_loss_data = {
     'total': [],
     'recon': [],
-    'match/KLD': []
+    'match': []
 }
 test_loss_data = {
     'total': [],
