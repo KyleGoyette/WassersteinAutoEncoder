@@ -148,7 +148,7 @@ class WAE_MMD(nn.Module):
     
     def loss(self,recon_x,x,z,z_tilde):
 
-        mse_loss = self.mse(recon_x,x)
+        mse_loss = self.mse(recon_x,x)/recon_x.shape[0]
         
         qz_norm = torch.sum(z_tilde**2,dim=1,keepdim=True)
         pz_norm = torch.sum(z**2,dim=1,keepdim=True)
