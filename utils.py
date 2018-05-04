@@ -21,6 +21,8 @@ def train(model, dloader,optimizer,confs, epoch,add_noise=True):
     model.decoder.train()
     model.train()
     train_loss = 0
+    recon_losses = 0
+    match_losses = 0
     for batch_index, (data,_) in enumerate(dloader):  
         if confs['CUDA']:
             data = data.cuda()
@@ -48,6 +50,8 @@ def train(model, dloader,optimizer,confs, epoch,add_noise=True):
             tot_loss.backward()
             optimizer.step()
             train_loss += tot_loss.data[0]
+            recon_losses += recon_loss.data[0]
+            match_losses += KLD_loss.data[0]
         
         elif confs['loss'] == 'wae-gan':
             optimizer_disc.zero_grad()
@@ -58,13 +62,15 @@ def train(model, dloader,optimizer,confs, epoch,add_noise=True):
 
             recon_x = model.decode(z_tilde)
 
-            loss, d_loss = model.loss(recon_x,data,z,z_tilde)
+            loss, d_loss,recon_loss,match_loss = model.loss(recon_x,data,z,z_tilde)
             d_loss.backward(retain_graph=True)
             optimizer_disc.step()
 
             loss.backward()
             optimizer.step()
             train_loss += loss.data[0]
+            recon_losses += recon_loss.data[0]
+            match_losses += match_loss.data[0]
         elif confs['loss'] == 'wae-mmd':
             optimizer.zero_grad()
             mu, logvar = model.encode(data)
@@ -72,21 +78,23 @@ def train(model, dloader,optimizer,confs, epoch,add_noise=True):
             z = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
 
             recon_x = model.decode(z_tilde)
-            loss = model.loss(recon_x,data,z,z_tilde)
+            loss,recon_loss,match_loss = model.loss(recon_x,data,z,z_tilde)
             loss.backward()
             optimizer.step()
             train_loss += loss.data[0]
-
+            recon_losses += recon_loss.data[0]
+            match_losses += match_loss.data[0]
     
     
-    return train_loss/len(dloader.dataset)
+    return train_loss/len(dloader.dataset), recon_losses/len(dloader.dataset), match_losses/len(dloader.dataset)
 
 def test(model,dloader,epoch,confs,add_noise=True):
     model.encoder.eval()
     model.decoder.eval()
     model.eval()
     test_loss = 0
-
+    recon_losses = 0
+    match_losses = 0
     for batch_index, (data, _) in enumerate(dloader):
         if confs['CUDA']: 
             data = data.cuda()
@@ -107,6 +115,8 @@ def test(model,dloader,epoch,confs,add_noise=True):
         if confs['loss'] == 'vae':
             recon_x, mu, logvar = model.forward(data)
             loss, bce_loss, KLD_loss = model.loss(recon_x,Variable(orig_data),mu,logvar)
+            recon_losses += bce_loss.data[0]
+            match_losses += KLD_loss.data[0]
         elif confs['loss'] == 'wae-gan':
             mu, logvar = model.encode(data)
             z_tilde = model.reparameterize(mu,logvar)
@@ -114,20 +124,23 @@ def test(model,dloader,epoch,confs,add_noise=True):
 
             recon_x = model.decode(z_tilde)
 
-            loss, d_loss = model.loss(recon_x,data,z,z_tilde)
+            loss, d_loss, recon_loss, match_loss = model.loss(recon_x,data,z,z_tilde)
+            recon_losses += recon_loss.data[0]
+            match_losses += match_loss.data[0]
         elif confs['loss'] == 'wae-mmd':
             mu, logvar = model.encode(data)
             z_tilde = model.reparameterize(mu,logvar)
             z = torch.autograd.Variable(torch.normal(torch.zeros(config.batch_size,confs['latentd']),std=1.0).cuda())
             recon_x = model.decode(z_tilde)
 
-            loss = model.loss(recon_x,data,z,z_tilde)
-        
+            loss,recon_loss,match_loss = model.loss(recon_x,data,z,z_tilde)
+            recon_losses += recon_loss.data[0]
+            match_losses += match_loss.data[0]
         test_loss += loss.data[0]
 
     if (epoch%config.REPORTFREQ == 0) or epoch == confs['NUMEPOCHS']:
         save_images(recon_x,orig_data,epoch,confs)
-    return test_loss/len(dloader.dataset)
+    return test_loss/len(dloader.dataset), recon_losses/len(dloader.dataset), match_losses/len(dloader.dataset)
 
 def pretrain(model,train_loader,optimizer,confs):
     for batch_index, (data, _) in train_loader:
@@ -266,8 +279,10 @@ def load_model(fname,model):
     state_dict.update(loaded_state_dict)
     model.load_state_dict(loaded_state_dict)
 
-def save_losses(data,confs,epoch):
+def save_losses(data,confs,epoch,test_train):
     save_path = './losses/{}/{}/'.format(confs['dataset'],confs['type'])
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
-    np.save("{}/{}.",data)
+    fname = save_path + '{}_{}'.format(test_train,epoch)
+    with open(fname+'.pkl','wb') as f:
+        pickle.dump(data,f,pickle.HIGHEST_PROTOCOL)

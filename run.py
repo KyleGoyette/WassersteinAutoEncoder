@@ -1,4 +1,4 @@
-from utils import load_data_mnist, load_data_celeba,train,test,save_model, pretrain
+from utils import load_data_mnist, load_data_celeba,train,test,save_model, pretrain,save_losses
 import torch
 import VAE
 import WAE
@@ -77,6 +77,17 @@ if confs['CUDA']:
 #    pretrain(model,trainloader,optimizer_p,confs)
 
 train_losses = []
+
+train_loss_data = {
+    'total': [],
+    'recon': [],
+    'match/KLD': []
+}
+test_loss_data = {
+    'total': [],
+    'recon': [],
+    'match': []
+}
 test_losses = []
 print('Beginning training...')
 for epoch in range(confs['NUMEPOCHS']):
@@ -85,16 +96,22 @@ for epoch in range(confs['NUMEPOCHS']):
     if confs['loss'] == 'wae-gan':
         scheduler1_disc.step()
         scheduler2_disc.step()
-    train_loss = train(model,trainloader,optimizer,confs,epoch)
+    train_loss,recon,match = train(model,trainloader,optimizer,confs,epoch)
     train_losses.append(train_loss)
+    train_loss_data['total'].append(train_loss)
+    train_loss_data['recon'].append(recon)
+    train_loss_data['match'].append(match)
     if testloader != None:
-        test_loss = test(model,testloader,epoch,confs,add_noise=confs['noise'])
+        test_loss,recon, match = test(model,testloader,epoch,confs,add_noise=confs['noise'])
         test_losses.append(test_loss)
+        test_loss_data['total'].append(train_loss)
+        test_loss_data['recon'].append(recon)
+        test_loss_data['match'].append(match)
         print('Epoch: {} Train Loss: {} Test Loss: {}'.format(epoch,train_loss,test_loss))
     else:
         print('Epoch: {} Train Loss: {}'.format(epoch,train_loss))
     if epoch % config.SAVEFREQ == 0:
         save_model(confs['dataset']+'_'+confs['type'],model,epoch,confs)
+    save_losses(loss_data_train,confs,epoch,'train')
+    save_losses(loss_data_test,confs,epoch,'test')
 save_model(confs['dataset'],model,epoch,confs)
-np.save('./losses/{}_train'.format(FLAGS.exp),train_losses)
-np.save('./losses/{}_test'.format(FLAGS.exp),test_losses)

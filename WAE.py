@@ -19,9 +19,9 @@ class WAE_GAN(nn.Module):
         self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters()))
 
         if self.confs['CUDA']:
-            self.mse = nn.MSELoss().cuda()
+            self.mse = nn.MSELoss(size_average=False).cuda()
         else:
-            self.mse = nn.MSELoss()
+            self.mse = nn.MSELoss(size_average=False)
 
         self.discrim_loss = nn.CrossEntropyLoss().cuda()
             
@@ -57,14 +57,14 @@ class WAE_GAN(nn.Module):
         p_preds = self.discriminator.forward(z)
         q_preds = self.discriminator.forward(z_tilde)
         
-        penalty = self.discrim_loss(q_preds,torch.ones_like(q_preds))
+        penalty = -torch.mean(torch.log(q_preds+10e-8))#self.discrim_loss(q_preds,torch.ones_like(q_preds))
         #for discriminator
-        loss_q = self.discrim_loss(q_preds,torch.zeros_like(q_preds))
-        loss_p = self.discrim_loss(p_preds,torch.ones_like(p_preds))
-
-        d_loss = self.confs['lambda']*(loss_q + loss_p)/config.batch_size
+        #loss_q = #self.discrim_loss(q_preds,torch.zeros_like(q_preds))
+        #loss_p = #self.discrim_loss(p_preds,torch.ones_like(p_preds))
+        
+        d_loss = -self.confs['lambda']*torch.mean(torch.log(p_preds+10e-8) + torch.log(1-q_preds+1e-8))
         enc_dec_loss = (mse_loss + self.confs['lambda']*penalty)
-        return enc_dec_loss, d_loss
+        return enc_dec_loss, d_loss, mse_loss,penalty
             
 
     def pretain_loss(self,mu,logvar):
@@ -172,7 +172,7 @@ class WAE_MMD(nn.Module):
 
             mmd_loss += res1 - res2
 
-        return mse_loss + self.confs['lambda']*mmd_loss
+        return mse_loss + self.confs['lambda']*mmd_loss, mse_loss,self.confs['lambda']*mmd_loss 
 
 class Discriminator(nn.Module):
     def __init__(self,confs):
