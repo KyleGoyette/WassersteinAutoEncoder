@@ -34,12 +34,15 @@ class VAE(nn.Module):
 
     def reparameterize(self,mu,logvar,n=config.batch_size):
         std = torch.exp(logvar*0.5)
-        if self.confs['CUDA']:
-            eps = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
-        else:
-            eps = torch.autograd.Variable(torch.FloatTensor(logvar.shape).normal_())
+        if self.training:
+            if self.confs['CUDA']:
+                eps = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
+            else:
+                eps = torch.autograd.Variable(torch.FloatTensor(logvar.shape).normal_())
 
-        return eps.float().mul(std).add_(mu)
+            return eps.float().mul(std).add_(mu)
+        else:
+            return mu
 
     def forward(self,x):
         mu, logvar = self.encode(x)
