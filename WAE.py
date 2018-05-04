@@ -52,17 +52,17 @@ class WAE_GAN(nn.Module):
 
     def loss(self,recon_x,x,z,z_tilde):
 
-        mse_loss = torch.sum(self.mse(recon_x,x))
+        mse_loss = self.mse(recon_x,x)/recon_x.shape[0]
         
         p_preds = self.discriminator.forward(z)
         q_preds = self.discriminator.forward(z_tilde)
         
-        penalty = -torch.mean(torch.log(q_preds+1e-8))#self.discrim_loss(q_preds,torch.ones_like(q_preds))
+        penalty = self.discrim_loss(q_preds,torch.ones_like(q_preds[:,1]).long())
         #for discriminator
-        #loss_q = #self.discrim_loss(q_preds,torch.zeros_like(q_preds))
-        #loss_p = #self.discrim_loss(p_preds,torch.ones_like(p_preds))
+        loss_q = self.discrim_loss(q_preds,torch.zeros_like(q_preds[:,1].long()))
+        loss_p = self.discrim_loss(p_preds,torch.ones_like(p_preds[:,1].long()))
         
-        d_loss = -self.confs['lambda']*torch.mean(torch.log(p_preds+1e-8) + torch.log(1-q_preds+1e-8))
+        d_loss = self.confs['lambda']*(loss_p+loss_q)/recon_x.shape[0]
         enc_dec_loss = (mse_loss + self.confs['lambda']*penalty)
         return enc_dec_loss, d_loss, mse_loss,penalty
             
@@ -195,14 +195,15 @@ class Discriminator(nn.Module):
         self.layer4 = nn.Sequential(
             nn.Linear(in_features=512, out_features=512),
             nn.ReLU(),
-            nn.Linear(in_features=512,out_features=1)
+            nn.Linear(in_features=512,out_features=2)
         )
 
     def forward(self,x):
         if self.confs['n_trick']:
             adder = torch.sum(x**2,dim=1)/2/(self.confs['sig_z']**2) - torch.autograd.Variable(0.5*torch.log(2*torch.FloatTensor([np.pi])).cuda()) - torch.autograd.Variable(0.5 * self.confs['latentd']*torch.log(torch.FloatTensor(self.confs['sig_z']**2)).cuda())
-
-            return F.sigmoid(self.layer4(self.layer3(self.layer2(self.layer1(x))))+adder)
+            output = self.layer4(self.layer3(self.layer2(self.layer1(x))))
+            output[:,1] += adder
+            return output
 
         else:
             return F.sigmoid(self.layer4(self.layer3(self.layer2(self.layer1(x)))))
