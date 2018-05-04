@@ -94,9 +94,9 @@ class WAE_MMD(nn.Module):
         self.myparameters = nn.ParameterList(list(self.encoder.parameters()) + list(self.decoder.parameters()))
 
         if self.confs['CUDA']:
-            self.mse = nn.MSELoss().cuda()
+            self.mse = nn.MSELoss(size_average=False).cuda()
         else:
-            self.mse = nn.MSELoss()
+            self.mse = nn.MSELoss(size_average=False)
 
     def encode(self,x):
         return self.encoder.forward(x)
