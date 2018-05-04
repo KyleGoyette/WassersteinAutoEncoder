@@ -206,7 +206,7 @@ class Discriminator(nn.Module):
             return output
 
         else:
-            return F.sigmoid(self.layer4(self.layer3(self.layer2(self.layer1(x)))))
+            return self.layer4(self.layer3(self.layer2(self.layer1(x))))
 
 class Encoder_MNIST(nn.Module):
     def __init__(self):
