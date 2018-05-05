@@ -120,7 +120,7 @@ def test(model,dloader,epoch,confs,add_noise=True):
         elif confs['loss'] == 'wae-gan':
             mu, logvar = model.encode(data)
             z_tilde = model.reparameterize(mu,logvar)
-            z = torch.autograd.Variable(torch.normal(logvar.shape),std=confs['sig_z']).cuda()
+            z = torch.autograd.Variable(torch.normal(torch.zeros(logvar.shape),std=confs['sig_z'])).cuda()
 
             recon_x = model.decode(z_tilde)
 
@@ -130,7 +130,7 @@ def test(model,dloader,epoch,confs,add_noise=True):
         elif confs['loss'] == 'wae-mmd':
             mu, logvar = model.encode(data)
             z_tilde = model.reparameterize(mu,logvar)
-            z = torch.autograd.Variable(torch.normal(logvar.shape),std=confs['sig_z']).cuda()
+            z = torch.autograd.Variable(torch.normal(torch.zeros(logvar.shape),std=confs['sig_z'])).cuda()
             recon_x = model.decode(z_tilde)
 
             loss,recon_loss,match_loss = model.loss(recon_x,data,z,z_tilde)
