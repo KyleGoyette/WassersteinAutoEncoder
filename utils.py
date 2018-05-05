@@ -58,7 +58,7 @@ def train(model, dloader,optimizer,confs, epoch,add_noise=True):
             optimizer.zero_grad()
             mu, logvar = model.encode(data)
             z_tilde = model.reparameterize(mu,logvar)
-            z = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
+            z = torch.autograd.Variable(torch.normal(logvar.shape),std=confs['sig_z']).cuda()
 
             recon_x = model.decode(z_tilde)
 
@@ -75,7 +75,7 @@ def train(model, dloader,optimizer,confs, epoch,add_noise=True):
             optimizer.zero_grad()
             mu, logvar = model.encode(data)
             z_tilde = model.reparameterize(mu,logvar)
-            z = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
+            z = torch.autograd.Variable(torch.normal(logvar.shape),std=confs['sig_z']).cuda()
 
             recon_x = model.decode(z_tilde)
             loss,recon_loss,match_loss = model.loss(recon_x,data,z,z_tilde)
@@ -120,7 +120,7 @@ def test(model,dloader,epoch,confs,add_noise=True):
         elif confs['loss'] == 'wae-gan':
             mu, logvar = model.encode(data)
             z_tilde = model.reparameterize(mu,logvar)
-            z = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
+            z = torch.autograd.Variable(torch.normal(logvar.shape),std=confs['sig_z']).cuda()
 
             recon_x = model.decode(z_tilde)
 
@@ -130,7 +130,7 @@ def test(model,dloader,epoch,confs,add_noise=True):
         elif confs['loss'] == 'wae-mmd':
             mu, logvar = model.encode(data)
             z_tilde = model.reparameterize(mu,logvar)
-            z = torch.autograd.Variable(torch.normal(logvar.shape),std=1.0).cuda()
+            z = torch.autograd.Variable(torch.normal(logvar.shape),std=confs['sig_z']).cuda()
             recon_x = model.decode(z_tilde)
 
             loss,recon_loss,match_loss = model.loss(recon_x,data,z,z_tilde)
@@ -246,7 +246,7 @@ def create_celeba_datapaths(split=0.9):
 
     img_list = os.listdir(data_path + 'img_align_celeba/')
     max_images = int(len(img_list))
-    for i in range(len(img_list)):
+    for i in range(max_images):
         if (i%1000 ==0 ):
             print('Prepared {} images'.format((i)))
         img = plt.imread(data_path + 'img_align_celeba/' + img_list[i])

@@ -68,7 +68,7 @@ conf_celeba_wae_gan['noise'] = True
 conf_celeba_wae_gan['loss'] = 'wae-gan'
 conf_celeba_wae_gan['lambda'] = 1
 conf_celeba_wae_gan['n_trick'] = True
-conf_celeba_wae_gan['sig_z'] = 1
+conf_celeba_wae_gan['sig_z'] = 2
 
 #MNIST-WAE-MMD
 conf_mnist_wae_mmd = {}
@@ -99,9 +99,9 @@ conf_celeba_wae_mmd['B2'] = 0.999
 conf_celeba_wae_mmd['milestones1'] = [30]
 conf_celeba_wae_mmd['milestones2'] = [50]
 conf_celeba_wae_mmd['NUMEPOCHS'] = 55
-conf_celeba_wae_mmd['noise'] = True
+conf_celeba_wae_mmd['noise'] = False
 conf_celeba_wae_mmd['loss'] = 'wae-mmd'
-conf_celeba_wae_mmd['sig_z'] = 1
+conf_celeba_wae_mmd['sig_z'] = 2
 conf_celeba_wae_mmd['lambda'] = 100
 batch_size = 100
 
