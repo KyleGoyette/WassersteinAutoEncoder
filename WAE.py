@@ -52,20 +52,22 @@ class WAE_GAN(nn.Module):
 
     def loss(self,recon_x,x,z,z_tilde):
 
-        mse_loss = torch.sum(self.mse(recon_x,x))
-        
+        mse_loss = self.mse(recon_x,x)/recon_x.shape[0]
+        #print('mean z: {}'.format(torch.mean(z_tilde).data[0]))
         p_preds = self.discriminator.forward(z)
         q_preds = self.discriminator.forward(z_tilde)
-        
+        #print(q_preds.data)
+        #print(p_preds.data)
         penalty = -torch.mean(torch.log(q_preds+1e-8))#self.discrim_loss(q_preds,torch.ones_like(q_preds))
         #for discriminator
         #loss_q = #self.discrim_loss(q_preds,torch.zeros_like(q_preds))
         #loss_p = #self.discrim_loss(p_preds,torch.ones_like(p_preds))
-        
+
         d_loss = -self.confs['lambda']*torch.mean(torch.log(p_preds+1e-8) + torch.log(1-q_preds+1e-8))
         enc_dec_loss = (mse_loss + self.confs['lambda']*penalty)
         return enc_dec_loss, d_loss, mse_loss,penalty
-            
+
+
 
     def pretain_loss(self,mu,logvar):
         sample_noise = torch.autograd.Variable(torch.cuda.FloatTensor(logvar.shape).normal_())
@@ -126,10 +128,6 @@ class WAE_MMD(nn.Module):
 
         return recon_x, mu, logvar
 
-    def kernel(self,z_0,z_1):
-        C = 2.0*self.confs['latentd']*(self.confs['sig_z']**2)
-        return C/(C+torch.mean(z_0-z_1)**2)
-
     #def loss(self,recon_x,x,z,z_tilde):
     #    #print(torch.max(z_tilde).data[0])
     #    mse_loss = self.mse(recon_x,x)#
@@ -147,9 +145,8 @@ class WAE_MMD(nn.Module):
     #    return mse_loss + self.confs['lambda']*mmd_loss
     
     def loss(self,recon_x,x,z,z_tilde):
+        mse_loss = self.mse(recon_x,x)/recon_x.shape[0]
 
-        mse_loss = self.mse(recon_x,x)
-        
         qz_norm = torch.sum(z_tilde**2,dim=1,keepdim=True)
         pz_norm = torch.sum(z**2,dim=1,keepdim=True)
         qzqz_dot = torch.matmul(z_tilde,z_tilde.t())
@@ -162,7 +159,7 @@ class WAE_MMD(nn.Module):
         C_init = 2.0*self.confs['latentd']*(self.confs['sig_z']**2)
 
         mmd_loss = 0
-        for scale in [0.1,0.2,0.5,1.0,2.0,5.0,10.0]:
+        for scale in [1.0]:
             C = C_init * scale
             res1 = C/ (C+ qz_dist) + C/(C+pz_dist)
             res1 = torch.matmul(res1, torch.autograd.Variable(1.0-torch.eye(n).cuda()))
@@ -172,7 +169,8 @@ class WAE_MMD(nn.Module):
 
             mmd_loss += res1 - res2
 
-        return mse_loss + self.confs['lambda']*mmd_loss, mse_loss,self.confs['lambda']*mmd_loss 
+        return mse_loss + self.confs['lambda']*mmd_loss, mse_loss,self.confs['lambda']*mmd_loss
+
 
 class Discriminator(nn.Module):
     def __init__(self,confs):
@@ -200,12 +198,13 @@ class Discriminator(nn.Module):
 
     def forward(self,x):
         if self.confs['n_trick']:
-            adder = torch.sum(x**2,dim=1)/2/(self.confs['sig_z']**2) - torch.autograd.Variable(0.5*torch.log(2*torch.FloatTensor([np.pi])).cuda()) - torch.autograd.Variable(0.5 * self.confs['latentd']*torch.log(torch.FloatTensor(self.confs['sig_z']**2)).cuda())
+            adder = torch.sum(x**2,dim=1)/2/(self.confs['sig_z']**2) - torch.autograd.Variable(0.5*torch.log(2*torch.FloatTensor([np.pi])).cuda()) - torch.autograd.Variable(0.5 * self.confs['latentd']*torch.log(torch.FloatTensor([self.confs['sig_z']**2])).cuda())
+            output= F.sigmoid(self.layer4(self.layer3(self.layer2(self.layer1(x))))+adder)
 
-            return F.sigmoid(self.layer4(self.layer3(self.layer2(self.layer1(x))))+adder)
-
+            return output
         else:
             return F.sigmoid(self.layer4(self.layer3(self.layer2(self.layer1(x)))))
+
 
 class Encoder_MNIST(nn.Module):
     def __init__(self):
