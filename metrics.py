@@ -42,24 +42,23 @@ def calc_average_fid_and_blur(model,dloader):
 
 
                                 
-def calc_blur(X):
+def calc_blur(image):
     """
     https://github.com/tolstikhin/wae/blob/master/wae.py -- line 344
 
     """
-    # RGB case -- convert to greyscale
-    if X.size(1) == 3:
-        X = torch.mean(X, 1, keepdim=True)
+    if image.size(1) == 3:
+        image = torch.mean(X, 1, keepdim=True)
 
-    lap_filter = np.array([[0, 1, 0], [1, -4, 1], [0, 1, 0]])
-    lap_filter = lap_filter.reshape([1, 1, 3, 3])
-    lap_filter = torch.autograd.Variable(torch.from_numpy(lap_filter).float())
+    laplace_filter = np.array([[0, 1, 0], [1, -4, 1], [0, 1, 0]])
+    laplace_filter = laplace_filter.reshape([1, 1, 3, 3])
+    laplace_filter = torch.autograd.Variable(torch.from_numpy(laplace_filter).float())
 
-    if True:
-        lap_filter = lap_filter.cuda()
+    
+    laplace_filter = lap_filter.cuda()
 
     # valid padding (i.e., no padding)
-    conv = F.conv2d(X, lap_filter, padding=0, stride=1)
+    conv = F.conv2d(X, laplace_filter, padding=0, stride=1)
 
     # smoothness is the variance of the convolved image
     var = torch.var(conv)
