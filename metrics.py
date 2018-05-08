@@ -43,10 +43,8 @@ def calc_average_fid_and_blur(model,dloader):
 
                                 
 def calc_blur(image):
-    """
-    https://github.com/tolstikhin/wae/blob/master/wae.py -- line 344
-
-    """
+    
+    #https://github.com/tolstikhin/wae/blob/master/wae.py
     if image.size(1) == 3:
         image = torch.mean(X, 1, keepdim=True)
 
